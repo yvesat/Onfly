@@ -40,3 +40,18 @@ android/local.properties
 # Flutter-specific
 .flutter-plugins
 .flutter-plugins-dependencies
+
+# Flutter-generated plugin registration files
+*generated_plugin_registrant.cc
+*generated_plugins.cmake
+
+# iOS-generated plugin registration file (Swift)
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Windows-generated plugin registration files (CMake)
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugins.cmake
+
+# Linux-generated plugin registration files (CMake)
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugins.cmake
