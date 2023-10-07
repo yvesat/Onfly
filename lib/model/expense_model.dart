@@ -55,7 +55,7 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
     return state.firstWhereOrNull((expense) => expense.expenseId == id);
   }
 
-  void addExpense(String title, DateTime date, double value) {
+  String createExpense(String title, DateTime date, double value) {
     final newExpense = Expense(
       expenseId: _uuid.v4(),
       title: title,
@@ -64,6 +64,8 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
     );
 
     state = [...state, newExpense];
+
+    return newExpense.expenseId;
   }
 
   void editExpense(Expense editedExpense, {String? title, DateTime? date, double? value}) {
