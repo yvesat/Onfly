@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:onfly/controller/expenses_controller.dart';
+import 'package:onfly/model/enums/alert_type.dart';
+
+import '../screens/expense_page.dart';
+import 'alert.dart';
 
 class ExpenseListTile extends HookConsumerWidget {
   final String expenseId;
@@ -11,6 +15,9 @@ class ExpenseListTile extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final expenseController = ref.watch(expenseControllerProvider.notifier);
     final expense = expenseController.getExpense(ref, expenseId);
+
+    final alertaProvider = Provider<Alert>((ref) => Alert());
+    final alerta = ref.read(alertaProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -35,11 +42,31 @@ class ExpenseListTile extends HookConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ExpensePage(
+                          expenseId,
+                          title: "Editar Despesa",
+                        ),
+                      ),
+                    );
+                  },
                   child: const Text('Editar'),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    alerta.dialog(
+                      context,
+                      alertType: AlertType.warning,
+                      message: "Deseja remover despesa?",
+                      onPressed: () async {
+                        await expenseController.removeExpense(ref, expenseId);
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
                   child: const Text('Remover'),
                 ),
               ],

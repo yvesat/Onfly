@@ -32,12 +32,14 @@ class _HomePageState extends ConsumerState<HomePage> {
         onPressed: () {
           final expenseId = expenseController.createExpense(ref);
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => EspensePage(
-                        expenseId,
-                        title: "Nova Despesa",
-                      )));
+            context,
+            MaterialPageRoute(
+              builder: (context) => ExpensePage(
+                expenseId,
+                title: "Nova Despesa",
+              ),
+            ),
+          );
         },
         child: Icon(Icons.add),
       ),

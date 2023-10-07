@@ -3,8 +3,9 @@ import 'package:isar/isar.dart';
 import 'package:collection/collection.dart';
 import 'package:uuid/uuid.dart';
 
-// Define the Expense class
-@Collection()
+part 'expense_model.g.dart';
+
+@collection
 class Expense {
   Id id = Isar.autoIncrement;
   final String expenseId;
@@ -51,8 +52,8 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
 
   final Uuid _uuid = const Uuid();
 
-  Expense? getExpenseById(String id) {
-    return state.firstWhereOrNull((expense) => expense.expenseId == id);
+  Expense? getExpenseById(String expenseId) {
+    return state.firstWhereOrNull((expense) => expense.expenseId == expenseId);
   }
 
   String createExpense(String title, DateTime date, double value) {
@@ -76,7 +77,7 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
   }
 
   void removeExpense(Expense expenseToRemove) {
-    state.removeWhere((element) => expenseToRemove == expenseToRemove);
+    state = state.where((expense) => expense != expenseToRemove).toList();
   }
 
   List<Expense> get expensesList => state;

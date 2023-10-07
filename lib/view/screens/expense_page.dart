@@ -4,16 +4,16 @@ import 'package:intl/intl.dart';
 import 'package:onfly/controller/expenses_controller.dart';
 import 'package:onfly/view/widgets/button.dart';
 
-class EspensePage extends ConsumerStatefulWidget {
+class ExpensePage extends ConsumerStatefulWidget {
   final String expenseId;
   final String title;
-  const EspensePage(this.expenseId, {required this.title, super.key});
+  const ExpensePage(this.expenseId, {required this.title, super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _CreateExpensePageState();
 }
 
-class _CreateExpensePageState extends ConsumerState<EspensePage> {
+class _CreateExpensePageState extends ConsumerState<ExpensePage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _valueController = TextEditingController();
@@ -22,6 +22,8 @@ class _CreateExpensePageState extends ConsumerState<EspensePage> {
   Widget build(BuildContext context) {
     final expenseController = ref.read(expenseControllerProvider.notifier);
     final expense = expenseController.getExpense(ref, widget.expenseId);
+    _titleController.text = expense!.title;
+    _valueController.text = expense.value.toStringAsFixed(2);
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +53,7 @@ class _CreateExpensePageState extends ConsumerState<EspensePage> {
                       child: TextFormField(
                         readOnly: false,
                         decoration: const InputDecoration(labelText: 'Data da Despesa'),
-                        initialValue: DateFormat('dd/MM/yyyy').format(expense!.date),
+                        initialValue: DateFormat('dd/MM/yyyy').format(expense.date),
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),
