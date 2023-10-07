@@ -12,52 +12,41 @@ class ExpenseListTile extends HookConsumerWidget {
     final expenseController = ref.watch(expenseControllerProvider.notifier);
     final expense = expenseController.getExpense(ref, expenseId);
 
-    return ExpansionTile(
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Card(
+        child: ExpansionTile(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(expense!.title, style: const TextStyle(fontSize: 18.0)),
-              Text(
-                'Value: R\$ ${expense.value.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 14.0),
-              ),
+              const Text('Data: ', style: TextStyle(fontSize: 14.0)),
             ],
           ),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          subtitle: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Date: ',
-                style: TextStyle(fontSize: 14.0),
-              ),
-              Icon(Icons.payment, size: 32.0),
+              Text('Valor: R\$ ${expense.value.toStringAsFixed(2)}', style: const TextStyle(fontSize: 14.0)),
+              const Icon(Icons.payment, size: 32.0),
             ],
           ),
-        ],
-      ),
-      trailing: Icon(expenseController.isExpanded(expense.expenseId) ? Icons.expand_less : Icons.expand_more),
-      onExpansionChanged: (expanded) {
-        expenseController.toggleExpansionState(expense.expenseId);
-      },
-      initiallyExpanded: expenseController.isExpanded(expense.expenseId),
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            TextButton(
-              onPressed: () {},
-              child: const Text('Edit'),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: const Text('Remove'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () {},
+                  child: const Text('Editar'),
+                ),
+                TextButton(
+                  onPressed: () {},
+                  child: const Text('Remover'),
+                ),
+              ],
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 }
