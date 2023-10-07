@@ -1,22 +1,31 @@
+import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../model/expenses_model.dart';
+import '../model/expense_model.dart';
 
 class ExpenseController extends StateNotifier<AsyncValue<void>> {
   ExpenseController() : super(const AsyncValue.data(null));
 
-  String? currentlyExpandedId;
-
-  bool isExpanded(String id) {
-    return currentlyExpandedId == id;
+  String createExpense(WidgetRef ref) {
+    return ref.read(expenseProvider.notifier).createExpense("", DateTime.now(), 0.0);
   }
 
-  void toggleExpansionState(String id) {
-    if (currentlyExpandedId == id) {
-      currentlyExpandedId = null;
-    } else {
-      currentlyExpandedId = id;
-    }
+  void setTitle(BuildContext context, WidgetRef ref, Expense expense, String title) {
+    ref.read(expenseProvider.notifier).editExpense(expense, title: title);
+  }
+
+  Future<void> setDate(BuildContext context, WidgetRef ref, Expense expense) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: expense.date,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (pickedDate != null && pickedDate != expense.date) ref.read(expenseProvider.notifier).editExpense(expense, date: pickedDate);
+  }
+
+  void setValue(BuildContext context, WidgetRef ref, Expense expense, double value) {
+    ref.read(expenseProvider.notifier).editExpense(expense, value: value);
   }
 
   Expense? getExpense(WidgetRef ref, String id) {
@@ -25,10 +34,6 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
 
   List<Expense> getExpensesList(WidgetRef ref) {
     return ref.watch(expenseProvider);
-  }
-
-  void addExpense(WidgetRef ref, String title, DateTime date, double value) {
-    ref.read(expenseProvider.notifier).addExpense(title, date, value);
   }
 }
 
