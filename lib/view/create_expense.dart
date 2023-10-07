@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:onfly/controller/expenses_controller.dart';
 
 class CreateExpensePage extends ConsumerStatefulWidget {
-  const CreateExpensePage({super.key});
+  final String expenseId;
+  const CreateExpensePage(this.expenseId, {super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _CreateExpensePageState();
@@ -12,27 +14,12 @@ class CreateExpensePage extends ConsumerStatefulWidget {
 class _CreateExpensePageState extends ConsumerState<CreateExpensePage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
-  DateTime _selectedDate = DateTime.now();
-  double _value = 0.0;
-
-  //TODO: MOVER
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final expenseController = ref.read(expenseControllerProvider.notifier);
+    final expense = expenseController.getExpense(ref, widget.expenseId);
+    //final expense = ref.watch(expenseProvider).last;
 
     return Scaffold(
       appBar: AppBar(
@@ -47,7 +34,7 @@ class _CreateExpensePageState extends ConsumerState<CreateExpensePage> {
             children: <Widget>[
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: const InputDecoration(labelText: 'Despesa'),
                 validator: (value) {
                   if (value != null && value.isEmpty) {
                     return 'Please enter a title';
@@ -56,48 +43,44 @@ class _CreateExpensePageState extends ConsumerState<CreateExpensePage> {
                 },
               ),
               const SizedBox(height: 20),
-              // Row(
-              //   children: <Widget>[
-              //     const Text('Date:'),
-              //     const SizedBox(width: 10),
-              //     Text(
-              //       "${_selectedDate.toLocal()}".split(' ')[0],
-              //       style: const TextStyle(fontSize: 55, fontWeight: FontWeight.bold),
-              //     ),
-              //     IconButton(
-              //       onPressed: () => _selectDate(context),
-              //       icon: const Icon(
-              //         Icons.calendar_today,
-              //         size: 40,
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // const SizedBox(height: 20),
-              // TextFormField(
-              //   decoration: const InputDecoration(labelText: 'Value'),
-              //   keyboardType: TextInputType.number,
-              //   validator: (value) {
-              //     if (value != null && value.isEmpty) {
-              //       return 'Please enter a value';
-              //     }
-              //     try {
-              //       double.parse(value!);
-              //     } catch (e) {
-              //       return 'Invalid value';
-              //     }
-              //     return null;
-              //   },
-              //   onSaved: (value) {
-              //     _value = double.parse(value!);
-              //   },
-              // ),
+              Row(
+                children: <Widget>[
+                  const Text('Date:'),
+                  const SizedBox(width: 10),
+                  Text(DateFormat('dd/MM/yyyy').format(expense!.date)),
+                  IconButton(
+                    onPressed: () => expenseController.setDate(context, ref, expense),
+                    icon: const Icon(
+                      Icons.calendar_today,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Valor'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value != null && value.isEmpty) {
+                    return 'Favor inserir valor';
+                  }
+                  try {
+                    double.parse(value!);
+                  } catch (e) {
+                    return 'Valor inválido';
+                  }
+                  return null;
+                },
+                onSaved: (value) {
+                  expenseController.setValue(context, ref, expense, double.parse(value!));
+                },
+              ),
               const Spacer(),
               Center(
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      expenseController.addExpense(ref, _titleController.text, DateTime.now(), 120.00); //TODO: informar data e valor
+                      //expenseController.addExpense(ref, _titleController.text, DateTime.now(), 120.00); //TODO: informar data e valor
                       Navigator.pop(context);
                     }
                   },
