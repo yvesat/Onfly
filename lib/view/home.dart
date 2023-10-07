@@ -15,8 +15,8 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
-    final expensesController = ref.read(expenseControllerProvider.notifier);
-    final expensesList = expensesController.getExpensesList(ref);
+    final expenseController = ref.read(expenseControllerProvider.notifier);
+    final expensesList = expenseController.getExpensesList(ref);
 
     return Scaffold(
       appBar: AppBar(
@@ -30,8 +30,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navigate to the CreateExpense page when the FAB is pressed
-          Navigator.push(context, MaterialPageRoute(builder: (context) => CreateExpensePage()));
+          final expenseId = expenseController.createExpense(ref);
+          Navigator.push(context, MaterialPageRoute(builder: (context) => CreateExpensePage(expenseId)));
         },
         child: Icon(Icons.add),
       ),
