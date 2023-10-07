@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:onfly/controller/expenses_controller.dart';
 
-import 'create_expense.dart';
-import 'widgets/expense_tile.dart';
+import 'expense_page.dart';
+import '../widgets/expense_tile.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -31,7 +31,13 @@ class _HomePageState extends ConsumerState<HomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           final expenseId = expenseController.createExpense(ref);
-          Navigator.push(context, MaterialPageRoute(builder: (context) => CreateExpensePage(expenseId)));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => EspensePage(
+                        expenseId,
+                        title: "Nova Despesa",
+                      )));
         },
         child: Icon(Icons.add),
       ),
