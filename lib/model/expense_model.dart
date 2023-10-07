@@ -10,40 +10,27 @@ class Expense {
   Id id = Isar.autoIncrement;
   final String expenseId;
   final String title;
-  final DateTime date;
   final double value;
+  final DateTime date;
 
   Expense({
     required this.expenseId,
     required this.title,
-    required this.date,
     required this.value,
+    required this.date,
   });
 
   Expense copyWith({
-    String? expenseId,
     String? title,
-    DateTime? date,
     double? value,
+    DateTime? date,
   }) {
     return Expense(
-      expenseId: expenseId ?? this.expenseId,
+      expenseId: expenseId,
       title: title ?? this.title,
-      date: date ?? this.date,
       value: value ?? this.value,
+      date: date ?? this.date,
     );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is Expense && other.expenseId == expenseId && other.title == title && other.date == date && other.value == value;
-  }
-
-  @override
-  int get hashCode {
-    return title.hashCode ^ date.hashCode ^ value.hashCode;
   }
 }
 
@@ -56,7 +43,7 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
     return state.firstWhereOrNull((expense) => expense.expenseId == expenseId);
   }
 
-  String createExpense(String title, DateTime date, double value) {
+  Expense createExpense(String title, double value, DateTime date) {
     final newExpense = Expense(
       expenseId: _uuid.v4(),
       title: title,
@@ -66,14 +53,16 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
 
     state = [...state, newExpense];
 
-    return newExpense.expenseId;
+    return newExpense;
   }
 
-  void editExpense(Expense editedExpense, {String? title, DateTime? date, double? value}) {
+  Expense? editExpense(String expenseId, {String? newTitle, double? newValue, DateTime? newDate}) {
     state = [
       for (final expense in state)
-        if (expense == editedExpense) expense.copyWith(title: title, date: date, value: value) else expense,
+        if (expense.expenseId == expenseId) expense.copyWith(title: newTitle, value: newValue, date: newDate) else expense,
     ];
+
+    return state.firstWhereOrNull((expense) => expense.expenseId == expenseId);
   }
 
   void removeExpense(Expense expenseToRemove) {

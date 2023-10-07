@@ -5,9 +5,9 @@ import 'package:onfly/controller/expenses_controller.dart';
 import 'package:onfly/view/widgets/button.dart';
 
 class ExpensePage extends ConsumerStatefulWidget {
-  final String expenseId;
+  final String? expenseId;
   final String title;
-  const ExpensePage(this.expenseId, {required this.title, super.key});
+  const ExpensePage({this.expenseId, required this.title, super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _CreateExpensePageState();
@@ -17,13 +17,17 @@ class _CreateExpensePageState extends ConsumerState<ExpensePage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _valueController = TextEditingController();
+  DateTime expenseDate = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
     final expenseController = ref.read(expenseControllerProvider.notifier);
-    final expense = expenseController.getExpense(ref, widget.expenseId);
-    _titleController.text = expense!.title;
-    _valueController.text = expense.value.toStringAsFixed(2);
+    if (widget.expenseId != null) {
+      final expense = expenseController.getExpense(ref, widget.expenseId!);
+      _titleController.text = expense!.title;
+      _valueController.text = expense.value.toStringAsFixed(2);
+      expenseDate = expense.date;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -46,23 +50,41 @@ class _CreateExpensePageState extends ConsumerState<ExpensePage> {
                   },
                 ),
               ),
-              Card(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        readOnly: false,
-                        decoration: const InputDecoration(labelText: 'Data da Despesa'),
-                        initialValue: DateFormat('dd/MM/yyyy').format(expense.date),
-                        style: const TextStyle(fontSize: 16),
-                      ),
+              InkWell(
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Data da Despesa: ",
+                                style: TextStyle(fontSize: 12),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                DateFormat('dd/MM/yyyy').format(expenseDate),
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.calendar_today),
+                      ],
                     ),
-                    IconButton(
-                      onPressed: () => expenseController.setDate(context, ref, expense),
-                      icon: const Icon(Icons.calendar_today),
-                    ),
-                  ],
+                  ),
                 ),
+                onTap: () async {
+                  final newDate = await expenseController.setDate(context, ref, expenseDate);
+                  if (newDate != null) {
+                    setState(() {
+                      expenseDate = newDate;
+                    });
+                  }
+                },
               ),
               Card(
                 child: TextFormField(
@@ -79,9 +101,13 @@ class _CreateExpensePageState extends ConsumerState<ExpensePage> {
               Center(
                 child: Button(
                   label: "Salvar",
-                  onTap: () {
+                  onTap: () async {
                     if (_formKey.currentState!.validate()) {
-                      expenseController.updateExpense(context, ref, expense, _titleController.text, _valueController.text);
+                      if (widget.expenseId != null) {
+                        await expenseController.updateExpense(ref, widget.expenseId, _titleController.text, _valueController.text, expenseDate);
+                      } else {
+                        await expenseController.createExpense(ref, _titleController.text, _valueController.text, expenseDate);
+                      }
                       Navigator.pop(context);
                     }
                   },

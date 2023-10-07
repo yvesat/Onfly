@@ -14,10 +14,14 @@ class IsarService {
     await isar.writeTxn(() => isar.clear());
   }
 
-  //Order
+  //Expense
   Future<void> saveExpenseDB(Expense expense) async {
     final isar = await db;
-    await isar.writeTxn(() async => isar.expenses.put(expense));
+
+    final oldExpense = await isar.expenses.filter().expenseIdEqualTo(expense.expenseId).findFirst();
+    if (oldExpense != null) await isar.writeTxn(() async => await isar.expenses.delete(oldExpense.id));
+
+    await isar.writeTxn(() async => await isar.expenses.put(expense));
   }
 
   Future<Expense?> getExpenseByIdDB(String expenseId) async {

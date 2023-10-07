@@ -30,18 +30,12 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          final expenseId = expenseController.createExpense(ref);
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => ExpensePage(
-                expenseId,
-                title: "Nova Despesa",
-              ),
-            ),
+            MaterialPageRoute(builder: (context) => const ExpensePage(title: "Nova Despesa")),
           );
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

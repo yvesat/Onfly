@@ -9,32 +9,35 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
 
   final IsarService isarService = IsarService();
 
-  String createExpense(WidgetRef ref) {
-    return ref.read(expenseProvider.notifier).createExpense("", DateTime.now(), 0.0);
+  Future<void> createExpense(WidgetRef ref, String title, String value, DateTime date) async {
+    double doubleValue = double.parse(value.replaceAll(',', '.'));
+
+    final newExpense = ref.read(expenseProvider.notifier).createExpense(title, doubleValue, date);
+    await isarService.saveExpenseDB(newExpense);
   }
 
-  // Future<void> loadExpenseData(WidgetRef ref, String expenseId, String title, String value) async {
-  //   final expense = ref.read(expenseProvider.notifier).getExpenseById(expenseId);
-  //   title = expense!.title;
-
-  //   final stringValue = expense.value.toStringAsFixed(2).replaceAll('.', ',');
-  //   value = stringValue;
-  // }
-
-  Future<void> setDate(BuildContext context, WidgetRef ref, Expense expense) async {
+  Future<DateTime?> setDate(BuildContext context, WidgetRef ref, DateTime currentDate) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: expense.date,
+      initialDate: currentDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
-    if (pickedDate != null && pickedDate != expense.date) ref.read(expenseProvider.notifier).editExpense(expense, date: pickedDate);
+    if (pickedDate != null && pickedDate != currentDate) {
+      return pickedDate;
+    } else {
+      return null;
+    }
   }
 
-  void updateExpense(BuildContext context, WidgetRef ref, Expense expense, String title, String value) {
-    final doubleValue = double.parse(value.replaceAll(',', '.'));
+  Future<void> updateExpense(WidgetRef ref, String? expenseId, String? newTitle, String? newValue, DateTime? newDate) async {
+    if (expenseId == null) return;
 
-    ref.read(expenseProvider.notifier).editExpense(expense, title: title, value: doubleValue);
+    double? doubleValue;
+    if (newValue != null) doubleValue = double.parse(newValue.replaceAll(',', '.'));
+
+    final updatedExpense = ref.read(expenseProvider.notifier).editExpense(expenseId, newTitle: newTitle, newValue: doubleValue, newDate: newDate);
+    if (updatedExpense != null) await isarService.saveExpenseDB(updatedExpense);
   }
 
   Expense? getExpense(WidgetRef ref, String expenseId) {

@@ -47,7 +47,7 @@ class ExpenseListTile extends HookConsumerWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ExpensePage(
-                          expenseId,
+                          expenseId: expenseId,
                           title: "Editar Despesa",
                         ),
                       ),
