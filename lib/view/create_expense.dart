@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:onfly/controller/expenses_controller.dart';
+import 'package:onfly/view/widgets/button.dart';
 
 class CreateExpensePage extends ConsumerStatefulWidget {
   final String expenseId;
@@ -14,6 +15,7 @@ class CreateExpensePage extends ConsumerStatefulWidget {
 class _CreateExpensePageState extends ConsumerState<CreateExpensePage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _valueController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -32,59 +34,59 @@ class _CreateExpensePageState extends ConsumerState<CreateExpensePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Despesa'),
-                validator: (value) {
-                  if (value != null && value.isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
+              Card(
+                child: TextFormField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(labelText: 'Despesa'),
+                  validator: (value) {
+                    if (value != null && value.isEmpty) {
+                      return 'Please enter a title';
+                    }
+                    return null;
+                  },
+                ),
               ),
               const SizedBox(height: 20),
-              Row(
-                children: <Widget>[
-                  const Text('Date:'),
-                  const SizedBox(width: 10),
-                  Text(DateFormat('dd/MM/yyyy').format(expense!.date)),
-                  IconButton(
-                    onPressed: () => expenseController.setDate(context, ref, expense),
-                    icon: const Icon(
-                      Icons.calendar_today,
-                    ),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: <Widget>[
+                      const Text('Data:'),
+                      const SizedBox(width: 10),
+                      Text(DateFormat('dd/MM/yyyy').format(expense!.date)),
+                      IconButton(
+                        onPressed: () => expenseController.setDate(context, ref, expense),
+                        icon: const Icon(Icons.calendar_today),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
               const SizedBox(height: 20),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Valor'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value != null && value.isEmpty) {
-                    return 'Favor inserir valor';
-                  }
-                  try {
-                    double.parse(value!);
-                  } catch (e) {
-                    return 'Valor inválido';
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  expenseController.setValue(context, ref, expense, double.parse(value!));
-                },
+              Card(
+                child: TextFormField(
+                  controller: _valueController,
+                  decoration: const InputDecoration(labelText: 'Valor'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value != null && value.isEmpty) {
+                      return 'Favor inserir valor';
+                    }
+                    return null;
+                  },
+                ),
               ),
               const Spacer(),
               Center(
-                child: ElevatedButton(
-                  onPressed: () {
+                child: Button(
+                  label: "Salvar",
+                  onTap: () {
                     if (_formKey.currentState!.validate()) {
-                      //expenseController.addExpense(ref, _titleController.text, DateTime.now(), 120.00); //TODO: informar data e valor
+                      expenseController.updateExpense(context, ref, expense, _titleController.text, _valueController.text);
                       Navigator.pop(context);
                     }
                   },
-                  child: const Text('Save'),
                 ),
               ),
             ],

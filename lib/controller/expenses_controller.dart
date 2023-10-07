@@ -10,10 +10,6 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
     return ref.read(expenseProvider.notifier).createExpense("", DateTime.now(), 0.0);
   }
 
-  void setTitle(BuildContext context, WidgetRef ref, Expense expense, String title) {
-    ref.read(expenseProvider.notifier).editExpense(expense, title: title);
-  }
-
   Future<void> setDate(BuildContext context, WidgetRef ref, Expense expense) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -24,8 +20,10 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
     if (pickedDate != null && pickedDate != expense.date) ref.read(expenseProvider.notifier).editExpense(expense, date: pickedDate);
   }
 
-  void setValue(BuildContext context, WidgetRef ref, Expense expense, double value) {
-    ref.read(expenseProvider.notifier).editExpense(expense, value: value);
+  void updateExpense(BuildContext context, WidgetRef ref, Expense expense, String title, String value) {
+    final doubleValue = double.parse(value.replaceAll(',', '.'));
+
+    ref.read(expenseProvider.notifier).editExpense(expense, title: title, value: doubleValue);
   }
 
   Expense? getExpense(WidgetRef ref, String id) {
