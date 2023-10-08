@@ -67,6 +67,10 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
     await isarService.removeExpenseDB(expense!);
     ref.read(expenseProvider.notifier).removeExpense(expense);
   }
+
+  //TODO: Criar método para sincronismo automático.
+  //TODO: Inserir no main?
+  Future<void> syncLocalExpenses() async {}
 }
 
 final expenseControllerProvider = StateNotifierProvider<ExpenseController, AsyncValue<void>>((ref) => ExpenseController());

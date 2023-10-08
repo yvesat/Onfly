@@ -90,7 +90,7 @@ Expense _expenseDeserialize(
   final object = Expense(
     date: reader.readDateTime(offsets[0]),
     expenseId: reader.readString(offsets[1]),
-    isSynchronized: reader.readBoolOrNull(offsets[2]) ?? false,
+    isSynchronized: reader.readBool(offsets[2]),
     title: reader.readString(offsets[3]),
     value: reader.readDouble(offsets[4]),
   );
@@ -110,7 +110,7 @@ P _expenseDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
+      return (reader.readBool(offset)) as P;
     case 3:
       return (reader.readString(offset)) as P;
     case 4:
