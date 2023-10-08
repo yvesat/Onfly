@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:onfly/controller/expenses_controller.dart';
-
-import 'expense_page.dart';
+import '../../controller/expenses_controller.dart';
 import '../widgets/expense_tile.dart';
+import '../widgets/progress.dart';
+import 'expense_page.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -13,29 +13,42 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  Future<void>? _loadedData;
+  @override
+  void initState() {
+    super.initState();
+    Future(() {
+      _loadedData = ref.read(expenseControllerProvider.notifier).loadExpeneState(ref);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final expenseController = ref.read(expenseControllerProvider.notifier);
-    final expensesList = expenseController.getExpensesList(ref);
+    final expenseControllerState = ref.watch(expenseControllerProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Onfly'),
-      ),
-      body: ListView.builder(
-        itemCount: expensesList.length,
-        itemBuilder: (context, index) {
-          return ExpenseListTile(expensesList[index].expenseId);
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ExpensePage(title: "Nova Despesa")),
-          );
-        },
-        child: const Icon(Icons.add),
+    final expenseController = ref.read(expenseControllerProvider.notifier);
+    final expensesList = expenseController.getExpenseList(ref);
+
+    final size = MediaQuery.sizeOf(context);
+    return FutureBuilder(
+      future: _loadedData,
+      builder: (context, snapshot) => Stack(
+        children: [
+          Scaffold(
+            appBar: AppBar(
+              title: const Text('Onfly'),
+            ),
+            body: ListView.builder(
+              itemCount: expensesList.length,
+              itemBuilder: (context, index) => ExpenseListTile(expensesList[index].expenseId),
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpensePage(title: "Nova Despesa"))),
+              child: const Icon(Icons.add),
+            ),
+          ),
+          if (expenseControllerState.isLoading) Progress(size, loadingMessage: "Carregando dados...")
+        ],
       ),
     );
   }

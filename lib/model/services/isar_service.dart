@@ -18,9 +18,7 @@ class IsarService {
   Future<void> saveExpenseDB(Expense expense) async {
     final isar = await db;
 
-    final oldExpense = await isar.expenses.filter().expenseIdEqualTo(expense.expenseId).findFirst();
-    if (oldExpense != null) await isar.writeTxn(() async => await isar.expenses.delete(oldExpense.id));
-
+    await removeExpenseDB(expense); //Garantindo que a despesa a ser inserida será única
     await isar.writeTxn(() async => await isar.expenses.put(expense));
   }
 
@@ -37,7 +35,9 @@ class IsarService {
 
   Future<void> removeExpenseDB(Expense expense) async {
     final isar = await db;
-    await isar.writeTxn(() async => await isar.expenses.delete(expense.id));
+
+    final expenseToDelete = await isar.expenses.filter().expenseIdEqualTo(expense.expenseId).findFirst();
+    if (expenseToDelete != null) await isar.writeTxn(() async => await isar.expenses.delete(expenseToDelete.id));
   }
 
   Future<void> clearExpenseDB() async {

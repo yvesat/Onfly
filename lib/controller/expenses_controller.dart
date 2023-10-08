@@ -9,10 +9,24 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
 
   final IsarService isarService = IsarService();
 
+  Future<void> loadExpeneState(WidgetRef ref) async {
+    try {
+      state = const AsyncValue.loading();
+      final expenseListDB = await isarService.getExpensesListDB();
+      for (final expense in expenseListDB) {
+        ref.read(expenseProvider.notifier).loadExpense(expense);
+      }
+    } catch (_) {
+      rethrow;
+    } finally {
+      state = const AsyncValue.data(null);
+    }
+  }
+
   Future<void> createExpense(WidgetRef ref, String title, String value, DateTime date) async {
     double doubleValue = double.parse(value.replaceAll(',', '.'));
 
-    final newExpense = ref.read(expenseProvider.notifier).createExpense(title, doubleValue, date);
+    final newExpense = ref.read(expenseProvider.notifier).createExpense(title: title, value: doubleValue, date: date);
     await isarService.saveExpenseDB(newExpense);
   }
 
@@ -44,7 +58,7 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
     return ref.read(expenseProvider.notifier).getExpenseById(expenseId);
   }
 
-  List<Expense> getExpensesList(WidgetRef ref) {
+  List<Expense> getExpenseList(WidgetRef ref) {
     return ref.watch(expenseProvider);
   }
 

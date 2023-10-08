@@ -27,10 +27,10 @@ const ExpenseSchema = CollectionSchema(
       name: r'expenseId',
       type: IsarType.string,
     ),
-    r'hashCode': PropertySchema(
+    r'isSynchronized': PropertySchema(
       id: 2,
-      name: r'hashCode',
-      type: IsarType.long,
+      name: r'isSynchronized',
+      type: IsarType.bool,
     ),
     r'title': PropertySchema(
       id: 3,
@@ -76,7 +76,7 @@ void _expenseSerialize(
 ) {
   writer.writeDateTime(offsets[0], object.date);
   writer.writeString(offsets[1], object.expenseId);
-  writer.writeLong(offsets[2], object.hashCode);
+  writer.writeBool(offsets[2], object.isSynchronized);
   writer.writeString(offsets[3], object.title);
   writer.writeDouble(offsets[4], object.value);
 }
@@ -90,6 +90,7 @@ Expense _expenseDeserialize(
   final object = Expense(
     date: reader.readDateTime(offsets[0]),
     expenseId: reader.readString(offsets[1]),
+    isSynchronized: reader.readBoolOrNull(offsets[2]) ?? false,
     title: reader.readString(offsets[3]),
     value: reader.readDouble(offsets[4]),
   );
@@ -109,7 +110,7 @@ P _expenseDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 3:
       return (reader.readString(offset)) as P;
     case 4:
@@ -391,59 +392,6 @@ extension ExpenseQueryFilter
     });
   }
 
-  QueryBuilder<Expense, Expense, QAfterFilterCondition> hashCodeEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'hashCode',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Expense, Expense, QAfterFilterCondition> hashCodeGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'hashCode',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Expense, Expense, QAfterFilterCondition> hashCodeLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'hashCode',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Expense, Expense, QAfterFilterCondition> hashCodeBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'hashCode',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
   QueryBuilder<Expense, Expense, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -492,6 +440,16 @@ extension ExpenseQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Expense, Expense, QAfterFilterCondition> isSynchronizedEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isSynchronized',
+        value: value,
       ));
     });
   }
@@ -720,15 +678,15 @@ extension ExpenseQuerySortBy on QueryBuilder<Expense, Expense, QSortBy> {
     });
   }
 
-  QueryBuilder<Expense, Expense, QAfterSortBy> sortByHashCode() {
+  QueryBuilder<Expense, Expense, QAfterSortBy> sortByIsSynchronized() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hashCode', Sort.asc);
+      return query.addSortBy(r'isSynchronized', Sort.asc);
     });
   }
 
-  QueryBuilder<Expense, Expense, QAfterSortBy> sortByHashCodeDesc() {
+  QueryBuilder<Expense, Expense, QAfterSortBy> sortByIsSynchronizedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hashCode', Sort.desc);
+      return query.addSortBy(r'isSynchronized', Sort.desc);
     });
   }
 
@@ -783,18 +741,6 @@ extension ExpenseQuerySortThenBy
     });
   }
 
-  QueryBuilder<Expense, Expense, QAfterSortBy> thenByHashCode() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hashCode', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Expense, Expense, QAfterSortBy> thenByHashCodeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hashCode', Sort.desc);
-    });
-  }
-
   QueryBuilder<Expense, Expense, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -804,6 +750,18 @@ extension ExpenseQuerySortThenBy
   QueryBuilder<Expense, Expense, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Expense, Expense, QAfterSortBy> thenByIsSynchronized() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynchronized', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Expense, Expense, QAfterSortBy> thenByIsSynchronizedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynchronized', Sort.desc);
     });
   }
 
@@ -847,9 +805,9 @@ extension ExpenseQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Expense, Expense, QDistinct> distinctByHashCode() {
+  QueryBuilder<Expense, Expense, QDistinct> distinctByIsSynchronized() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'hashCode');
+      return query.addDistinctBy(r'isSynchronized');
     });
   }
 
@@ -887,9 +845,9 @@ extension ExpenseQueryProperty
     });
   }
 
-  QueryBuilder<Expense, int, QQueryOperations> hashCodeProperty() {
+  QueryBuilder<Expense, bool, QQueryOperations> isSynchronizedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'hashCode');
+      return query.addPropertyName(r'isSynchronized');
     });
   }
 
