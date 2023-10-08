@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import 'package:onfly/model/token_model.dart';
 import 'package:path_provider/path_provider.dart';
 import '../expense_model.dart';
 
@@ -45,12 +46,25 @@ class IsarService {
     await isar.writeTxn(() async => await isar.expenses.clear());
   }
 
+  //Token
+  Future<void> saveTokenDB(Token token) async {
+    final isar = await db;
+    await isar.writeTxn(() async => await isar.tokens.clear());
+
+    await isar.writeTxn(() async => await isar.tokens.put(token));
+  }
+
+  Future<Token?> getTokenDB() async {
+    final isar = await db;
+    return await isar.tokens.where().findFirst();
+  }
+
   Future<Isar> openDB() async {
     if (Isar.instanceNames.isEmpty) {
       final dir = await getApplicationDocumentsDirectory();
       return await Isar.open(
         directory: dir.path,
-        [ExpenseSchema],
+        [ExpenseSchema, TokenSchema],
         inspector: true,
       );
     }
