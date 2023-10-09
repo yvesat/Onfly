@@ -4,25 +4,32 @@ import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:onfly/model/services/isar_service.dart';
 
+import '../../controller/token_controller.dart';
 import '../expense_model.dart';
+import '../token_model.dart';
+import 'api_config.dart';
 
 class ExpenseService {
-  final String baseUrl = "https://go-bd-api-3iyuzyysfa-uc.a.run.app/api";
-  //String? authToken;
+  final String baseUrl = ApiConfig.apiUrl;
 
   final IsarService isarService = IsarService();
+  final TokenController tokenController = TokenController();
 
-  Future<String> _loadToken() async {
-    final token = await isarService.getTokenDB();
-    return token!.token;
+  //Verifica e retorna se há token disponível.
+  //Caso não tenha, solicita novo token. Retorna token ou nulo
+  Future<Token?> _loadToken() async {
+    Token? token = await isarService.getTokenDB();
+    token ??= await tokenController.getTokenAPI();
+    return token;
   }
 
   Future<bool> createExpense(Expense expense) async {
     final connection = await InternetConnectionChecker().hasConnection;
     if (!connection) return false;
     final authToken = await _loadToken();
+    if (authToken == null) return false;
 
-    final url = Uri.parse('$baseUrl/collections/expense_$authToken/records');
+    final url = Uri.parse('$baseUrl/collections/expense_${authToken.token}/records');
     final body = jsonEncode({
       'title': expense.title,
       'value': expense.value,
@@ -34,7 +41,7 @@ class ExpenseService {
         url,
         body: body,
         headers: {
-          'Authorization': 'Bearer $authToken',
+          'Authorization': 'Bearer ${authToken.token}',
           'Content-Type': 'application/json',
         },
       );
@@ -53,8 +60,9 @@ class ExpenseService {
     final connection = await InternetConnectionChecker().hasConnection;
     if (!connection) return null;
     final authToken = await _loadToken();
+    if (authToken == null) return null;
 
-    final url = Uri.parse('$baseUrl/collections/expense_$authToken/records');
+    final url = Uri.parse('$baseUrl/collections/expense_${authToken.token}/records');
 
     try {
       final response = await http.get(
@@ -87,8 +95,9 @@ class ExpenseService {
     final connection = await InternetConnectionChecker().hasConnection;
     if (!connection) return false;
     final authToken = await _loadToken();
+    if (authToken == null) return false;
 
-    final url = Uri.parse('$baseUrl/collections/expense_$authToken/records/${expense.expenseId}');
+    final url = Uri.parse('$baseUrl/collections/expense_${authToken.token}/records/${expense.expenseId}');
     final body = jsonEncode({
       'title': expense.title,
       'value': expense.value,
@@ -119,8 +128,9 @@ class ExpenseService {
     final connection = await InternetConnectionChecker().hasConnection;
     if (!connection) return false;
     final authToken = await _loadToken();
+    if (authToken == null) return false;
 
-    final url = Uri.parse('$baseUrl/collections/expense_$authToken/records');
+    final url = Uri.parse('$baseUrl/collections/expense_${authToken.token}/records');
 
     final List<Map<String, dynamic>> expenseDataList = expenses.map((expense) {
       return {
@@ -156,8 +166,9 @@ class ExpenseService {
     final connection = await InternetConnectionChecker().hasConnection;
     if (!connection) return false;
     final authToken = await _loadToken();
+    if (authToken == null) return false;
 
-    final url = Uri.parse('$baseUrl/collections/expense_$authToken/records/$id');
+    final url = Uri.parse('$baseUrl/collections/expense_${authToken.token}/records/$id');
 
     try {
       final response = await http.delete(
