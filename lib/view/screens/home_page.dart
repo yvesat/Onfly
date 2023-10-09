@@ -27,7 +27,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final expenseControllerState = ref.watch(expenseControllerProvider);
 
     final expenseController = ref.read(expenseControllerProvider.notifier);
-    final expensesList = expenseController.getExpenseList(ref);
+    final expensesList = expenseController.getExpenseState(ref);
 
     final size = MediaQuery.sizeOf(context);
     return FutureBuilder(

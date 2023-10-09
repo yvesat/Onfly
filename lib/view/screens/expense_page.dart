@@ -27,7 +27,7 @@ class _CreateExpensePageState extends ConsumerState<ExpensePage> {
     final expenseControllerState = ref.watch(expenseControllerProvider);
     final expenseController = ref.read(expenseControllerProvider.notifier);
     if (widget.expenseId != null) {
-      final expense = expenseController.getExpense(ref, widget.expenseId!);
+      final expense = expenseController.getExpenseById(ref, widget.expenseId!);
       _titleController.text = expense!.description;
       _valueController.text = expense.amount.toStringAsFixed(2);
       expenseDate = expense.expenseDate;

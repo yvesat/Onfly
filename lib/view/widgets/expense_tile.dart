@@ -14,7 +14,7 @@ class ExpenseListTile extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final expenseController = ref.watch(expenseControllerProvider.notifier);
-    final expense = expenseController.getExpense(ref, expenseId);
+    final expense = expenseController.getExpenseById(ref, expenseId);
 
     final alertaProvider = Provider<Alert>((ref) => Alert());
     final alerta = ref.read(alertaProvider);
