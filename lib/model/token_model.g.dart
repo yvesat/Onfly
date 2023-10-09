@@ -62,9 +62,10 @@ Token _tokenDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Token();
+  final object = Token(
+    reader.readString(offsets[0]),
+  );
   object.id = id;
-  object.token = reader.readString(offsets[0]);
   return object;
 }
 

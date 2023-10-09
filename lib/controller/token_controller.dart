@@ -31,11 +31,11 @@ class TokenController {
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
 
-        Token().token = responseData['token'];
+        final Token token = Token(responseData['token']);
 
-        await isarService.saveTokenDB(Token());
+        await isarService.saveTokenDB(token);
 
-        return Token();
+        return token;
       } else {
         return null;
       }

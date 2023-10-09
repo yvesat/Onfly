@@ -6,4 +6,6 @@ part 'token_model.g.dart';
 class Token {
   Id id = Isar.autoIncrement;
   String token = "";
+
+  Token(this.token);
 }
