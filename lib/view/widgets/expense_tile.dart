@@ -26,14 +26,14 @@ class ExpenseListTile extends HookConsumerWidget {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(expense!.title, style: const TextStyle(fontSize: 18.0)),
+              Text(expense!.description, style: const TextStyle(fontSize: 18.0)),
               const Text('Data: ', style: TextStyle(fontSize: 14.0)),
             ],
           ),
           subtitle: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Valor: R\$ ${expense.value.toStringAsFixed(2)}', style: const TextStyle(fontSize: 14.0)),
+              Text('Valor: R\$ ${expense.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 14.0)),
               const Icon(Icons.payment, size: 32.0),
             ],
           ),

@@ -8,35 +8,39 @@ part 'expense_model.g.dart';
 @collection
 class Expense {
   Id id = Isar.autoIncrement;
-  final String expenseId;
-  final String title;
-  final double value;
-  final DateTime date;
+  final String expenseId; //id para gerenciamento de estado e dados internos do app
+  final String description;
+  final double amount;
+  final DateTime expenseDate;
+  final String? apiId; //id retornado do backend ao sincronizar
   final bool isSynchronized;
   final String latitude;
   final String longitude;
 
   Expense({
     required this.expenseId,
-    required this.title,
-    required this.value,
-    required this.date,
+    required this.description,
+    required this.amount,
+    required this.expenseDate,
+    required this.apiId,
     required this.isSynchronized,
     required this.latitude,
     required this.longitude,
   });
 
   Expense copyWith({
-    String? title,
-    double? value,
-    DateTime? date,
+    String? description,
+    double? amount,
+    DateTime? expenseDate,
+    String? apiId,
     bool? isSynchronized,
   }) {
     return Expense(
       expenseId: expenseId,
-      title: title ?? this.title,
-      value: value ?? this.value,
-      date: date ?? this.date,
+      description: description ?? this.description,
+      amount: amount ?? this.amount,
+      expenseDate: expenseDate ?? this.expenseDate,
+      apiId: apiId ?? this.apiId,
       isSynchronized: isSynchronized ?? this.isSynchronized,
       latitude: latitude,
       longitude: longitude,
@@ -56,23 +60,25 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
   void loadExpense(Expense expense) {
     final loadedExpense = Expense(
       expenseId: expense.expenseId,
-      title: expense.title,
-      date: expense.date,
-      value: expense.value,
-      isSynchronized: expense.isSynchronized,
+      description: expense.description,
+      expenseDate: expense.expenseDate,
+      amount: expense.amount,
+      apiId: expense.apiId,
       latitude: expense.latitude,
       longitude: expense.longitude,
+      isSynchronized: expense.isSynchronized,
     );
 
     state = [...state, loadedExpense];
   }
 
-  Expense createExpense({required String title, required double value, required DateTime date, required Map<String, String> latLong}) {
+  Expense createExpense({required String description, required double amount, required DateTime expenseDate, required Map<String, String> latLong}) {
     final newExpense = Expense(
       expenseId: _uuid.v4(),
-      title: title,
-      date: date,
-      value: value,
+      description: description,
+      expenseDate: expenseDate,
+      amount: amount,
+      apiId: null,
       isSynchronized: false,
       latitude: latLong["latitude"]!,
       longitude: latLong["longitude"]!,
@@ -83,13 +89,13 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
     return newExpense;
   }
 
-  Expense? editExpense(String expenseId, {String? newTitle, double? newValue, DateTime? newDate, bool? newIsSynchronized}) {
+  Expense editExpense(String expenseId, {String? newDescription, double? newAmount, DateTime? newExpenseDate, bool? isSynchronized, String? apiId}) {
     state = [
       for (final expense in state)
-        if (expense.expenseId == expenseId) expense.copyWith(title: newTitle, value: newValue, date: newDate, isSynchronized: newIsSynchronized) else expense,
+        if (expense.expenseId == expenseId) expense.copyWith(description: newDescription, amount: newAmount, expenseDate: newExpenseDate, apiId: apiId, isSynchronized: isSynchronized) else expense,
     ];
 
-    return state.firstWhereOrNull((expense) => expense.expenseId == expenseId);
+    return state.firstWhere((expense) => expense.expenseId == expenseId);
   }
 
   void removeExpense(Expense expenseToRemove) {
