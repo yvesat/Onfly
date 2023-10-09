@@ -38,9 +38,16 @@ class _HomePageState extends ConsumerState<HomePage> {
             appBar: AppBar(
               title: const Text('Onfly'),
             ),
-            body: ListView.builder(
-              itemCount: expensesList.length,
-              itemBuilder: (context, index) => ExpenseListTile(expensesList[index].expenseId),
+            body: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: expensesList.length,
+                    itemBuilder: (context, index) => ExpenseListTile(expensesList[index].expenseId),
+                  ),
+                ),
+                const SizedBox(height: 80)
+              ],
             ),
             floatingActionButton: FloatingActionButton(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ExpensePage(title: "Nova Despesa"))),
