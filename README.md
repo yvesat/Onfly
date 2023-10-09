@@ -14,7 +14,7 @@ Onfly is an app designed for travelers, with a focus on managing expenses during
 
 ## Technologies and Packages Used
 
-Flyfly is built using the following technologies and packages:
+Onfly is built using the following technologies and packages:
 
 - [Flutter](https://flutter.dev/): A cross-platform app development framework.
 - [Dart](https://dart.dev/): The programming language for Flutter.
