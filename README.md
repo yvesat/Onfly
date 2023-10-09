@@ -28,6 +28,8 @@ Flyfly is built using the following technologies and packages:
 - [intl](https://pub.dev/packages/intl): A package for internationalization and localization in Dart.
 - [http](https://pub.dev/packages/http): A package for making HTTP requests in Dart.
 - [internet_connection_checker](https://pub.dev/packages/internet_connection_checker): A package for checking internet connectivity in Flutter apps.
+- [geolocator](https://pub.dev/packages/geolocator): Provides precise location information (latitude, longitude, etc.) for accurate expense tracking.
+
 
 ## Installation and Setup
 
