@@ -37,10 +37,10 @@ class TokenController {
 
         return Token();
       } else {
-        throw Exception('Falha ao obter token');
+        return null;
       }
     } catch (e) {
-      throw Exception('Falha ao obter token: $e');
+      return null;
     }
   }
 }
