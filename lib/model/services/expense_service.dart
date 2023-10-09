@@ -23,6 +23,34 @@ class ExpenseService {
     return token;
   }
 
+  Future<List<dynamic>?> getExpenseList() async {
+    final connection = await InternetConnectionChecker().hasConnection;
+    if (!connection) return null;
+    final authToken = await _loadToken();
+    if (authToken == null) return null;
+
+    final url = Uri.parse('$baseUrl/collections/expense_${ApiConfig.login}/records');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${authToken.token}',
+        },
+      );
+
+      final expensesMap = await jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return expensesMap["items"];
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<String?> createExpense(Expense expense) async {
     final connection = await InternetConnectionChecker().hasConnection;
     if (!connection) return null;
@@ -57,43 +85,6 @@ class ExpenseService {
       return responseData['id'];
     } catch (e) {
       return null;
-    }
-  }
-
-  Future<List<Expense>?> getExpense() async {
-    final connection = await InternetConnectionChecker().hasConnection;
-    if (!connection) return null;
-    final authToken = await _loadToken();
-    if (authToken == null) return null;
-
-    final url = Uri.parse('$baseUrl/collections/expense_${ApiConfig.login}/records');
-
-    try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer ${authToken.token}',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        // final List<dynamic> expenseData = jsonDecode(response.body);
-        // return expenseData.map((data) {
-        //   return Expense(
-        //     expenseId: data['id'], //TODO: CORRIGIR
-        //     description: data['title'],
-        //     amount: data['value'].toDouble(),
-        //     expenseDate: DateTime.parse(data['date']),
-        //     apiId: data['id'],
-        //     latitude: data['latitude'],
-        //     longitude: data['longitude'],
-        //   );
-        // }).toList();
-      } else {
-        throw Exception('Failed to load expenses');
-      }
-    } catch (e) {
-      throw Exception('Error fetching expenses: $e');
     }
   }
 
@@ -149,7 +140,7 @@ class ExpenseService {
         },
       );
 
-      if (response.statusCode != 200) {
+      if (response.statusCode != 204) {
         return false;
       }
 

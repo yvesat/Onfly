@@ -72,14 +72,14 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
     state = [...state, loadedExpense];
   }
 
-  Expense createExpense({required String description, required double amount, required DateTime expenseDate, required Map<String, String> latLong}) {
+  Expense createExpense({required String description, required double amount, required DateTime expenseDate, required Map<String, String> latLong, String? apiId, bool? isSynchronized}) {
     final newExpense = Expense(
       expenseId: _uuid.v4(),
       description: description,
       expenseDate: expenseDate,
       amount: amount,
-      apiId: null,
-      isSynchronized: false,
+      apiId: apiId,
+      isSynchronized: isSynchronized ?? false,
       latitude: latLong["latitude"]!,
       longitude: latLong["longitude"]!,
     );
