@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:onfly/model/enums/alert_type.dart';
 import 'package:onfly/model/removed_expense.dart';
 import 'package:onfly/model/services/expense_service.dart';
+import 'package:onfly/model/services/geolocator_service.dart';
 import 'package:onfly/model/services/isar_service.dart';
+import 'package:onfly/view/widgets/alert.dart';
 
 import '../model/expense_model.dart';
 
@@ -11,6 +14,8 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
 
   final IsarService isarService = IsarService();
   final ExpenseService expenseService = ExpenseService();
+  final Alert alertService = Alert();
+  final GeolocatorService geolocatorService = GeolocatorService();
 
   Future<void> loadExpeneState(WidgetRef ref) async {
     try {
@@ -39,20 +44,27 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
       return null;
     }
   }
+  //
 
-  Future<void> createExpense(WidgetRef ref, String title, String value, DateTime date) async {
-    double doubleValue = double.parse(value.replaceAll(',', '.'));
+  Future<void> createExpense(BuildContext context, ref, String title, String value, DateTime date) async {
+    try {
+      state = const AsyncValue.loading();
 
-    final newExpense = ref.read(expenseProvider.notifier).createExpense(title: title, value: doubleValue, date: date);
-    await isarService.saveExpenseDB(newExpense);
-    final bool isSynchronized = await expenseService.createExpense(newExpense);
+      final latLong = await _getLatLong(context);
 
-    await updateExpenseSyncStatus(ref, isSynchronized, newExpense);
+      double doubleValue = double.parse(value.replaceAll(',', '.'));
+
+      final newExpense = ref.read(expenseProvider.notifier).createExpense(title: title, value: doubleValue, date: date);
+      await isarService.saveExpenseDB(newExpense);
+      final bool isSynchronized = await expenseService.createExpense(newExpense);
+
+      await _updateExpenseSyncStatus(ref, isSynchronized, newExpense);
+    } finally {
+      state = const AsyncValue.data(null);
+    }
   }
 
-  Future<void> updateExpense(WidgetRef ref, String? expenseId, String? newTitle, String? newValue, DateTime? newDate) async {
-    if (expenseId == null) return;
-
+  Future<void> updateExpense(WidgetRef ref, String expenseId, String? newTitle, String? newValue, DateTime? newDate) async {
     double? doubleValue;
     if (newValue != null) doubleValue = double.parse(newValue.replaceAll(',', '.'));
 
@@ -60,7 +72,7 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
     if (updatedExpense != null) {
       await isarService.saveExpenseDB(updatedExpense);
       bool isSynchronized = await expenseService.updateExpense(updatedExpense);
-      await updateExpenseSyncStatus(ref, isSynchronized, updatedExpense);
+      await _updateExpenseSyncStatus(ref, isSynchronized, updatedExpense);
     }
   }
 
@@ -93,8 +105,8 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
   }
 
   // Atualiza o status de sincronização no estado da aplicação e no banco de dados local, caso a operação de envio para a API seja bem-sucedida.
-  Future<void> updateExpenseSyncStatus(WidgetRef ref, bool isSynchronized, Expense expense) async {
-    if (!isSynchronized) {
+  Future<void> _updateExpenseSyncStatus(WidgetRef ref, bool isSynchronized, Expense expense) async {
+    if (isSynchronized) {
       final updatedExpense = ref.read(expenseProvider.notifier).editExpense(expense.expenseId, newIsSynchronized: isSynchronized);
       if (updatedExpense != null) await isarService.saveExpenseDB(updatedExpense);
     }
@@ -104,6 +116,18 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
   //TODO: Inserir no main?
   //TODO: Sincronizar: criação, atualização e remoção. Get?
   Future<void> syncLocalExpenses() async {}
+
+  Future<Map<String, String>> _getLatLong(BuildContext context) async {
+    try {
+      await geolocatorService.checkLocationService();
+      await geolocatorService.checkLocationPermission();
+
+      return await geolocatorService.getLatLong();
+    } catch (e) {
+      await alertService.dialog(context, alertType: AlertType.error, message: e.toString());
+      rethrow;
+    }
+  }
 }
 
 final expenseControllerProvider = StateNotifierProvider<ExpenseController, AsyncValue<void>>((ref) => ExpenseController());
