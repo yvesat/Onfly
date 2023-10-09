@@ -34,6 +34,8 @@ class ExpenseService {
       'title': expense.title,
       'value': expense.value,
       'date': expense.date.toIso8601String(),
+      'latitude': expense.latitude,
+      'longitude': expense.longitude,
     });
 
     try {
@@ -81,6 +83,8 @@ class ExpenseService {
             value: data['value'].toDouble(),
             date: DateTime.parse(data['date']),
             isSynchronized: true,
+            latitude: data['latitude'],
+            longitude: data['longitude'],
           );
         }).toList();
       } else {

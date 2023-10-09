@@ -13,6 +13,8 @@ class Expense {
   final double value;
   final DateTime date;
   final bool isSynchronized;
+  final String latitude;
+  final String longitude;
 
   Expense({
     required this.expenseId,
@@ -20,6 +22,8 @@ class Expense {
     required this.value,
     required this.date,
     required this.isSynchronized,
+    required this.latitude,
+    required this.longitude,
   });
 
   Expense copyWith({
@@ -34,6 +38,8 @@ class Expense {
       value: value ?? this.value,
       date: date ?? this.date,
       isSynchronized: isSynchronized ?? this.isSynchronized,
+      latitude: latitude,
+      longitude: longitude,
     );
   }
 }
@@ -54,18 +60,22 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
       date: expense.date,
       value: expense.value,
       isSynchronized: expense.isSynchronized,
+      latitude: expense.latitude,
+      longitude: expense.longitude,
     );
 
     state = [...state, loadedExpense];
   }
 
-  Expense createExpense({required String title, required double value, required DateTime date}) {
+  Expense createExpense({required String title, required double value, required DateTime date, required Map<String, String> latLong}) {
     final newExpense = Expense(
       expenseId: _uuid.v4(),
       title: title,
       date: date,
       value: value,
       isSynchronized: false,
+      latitude: latLong["latitude"]!,
+      longitude: latLong["longitude"]!,
     );
 
     state = [...state, newExpense];

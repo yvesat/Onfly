@@ -54,7 +54,8 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
 
       double doubleValue = double.parse(value.replaceAll(',', '.'));
 
-      final newExpense = ref.read(expenseProvider.notifier).createExpense(title: title, value: doubleValue, date: date);
+      final newExpense = ref.read(expenseProvider.notifier).createExpense(title: title, value: doubleValue, date: date, latLong: latLong);
+
       await isarService.saveExpenseDB(newExpense);
       final bool isSynchronized = await expenseService.createExpense(newExpense);
 
