@@ -17,7 +17,7 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
   final Alert alertService = Alert();
   final GeolocatorService geolocatorService = GeolocatorService();
 
-  Future<void> loadExpeneState(WidgetRef ref) async {
+  Future<void> loadExpenses(WidgetRef ref) async {
     try {
       state = const AsyncValue.loading();
       final expenseListDB = await isarService.getExpensesListDB();
@@ -44,7 +44,22 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
       return null;
     }
   }
-  //
+
+  //TODO: Implementar
+  Future<void> listExpensesAPI() async {
+    // final List<dynamic> expenseData = jsonDecode(response.body);
+    // return expenseData.map((data) {
+    //   return Expense(
+    //     expenseId: data['id'],
+    //     description: data['title'],
+    //     amount: data['value'].toDouble(),
+    //     expenseDate: DateTime.parse(data['date']),
+    //     apiId: data['id'],
+    //     latitude: data['latitude'],
+    //     longitude: data['longitude'],
+    //   );
+    // }).toList();
+  }
 
   Future<void> createExpense(BuildContext context, ref, String description, String amount, DateTime expenseDate) async {
     try {
@@ -83,30 +98,37 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
   }
 
   Expense? getExpense(WidgetRef ref, String expenseId) {
-    return ref.read(expenseProvider.notifier).getExpenseById(expenseId);
+    return ref.watch(expenseProvider.notifier).getExpenseById(expenseId);
   }
 
   List<Expense> getExpenseList(WidgetRef ref) {
     return ref.watch(expenseProvider);
   }
 
-  Future<void> removeExpense(WidgetRef ref, String expenseId) async {
-    try {
-      final expense = ref.read(expenseProvider.notifier).getExpenseById(expenseId);
-      if (expense != null) throw Exception("Falha ao encontrar despesa");
+  Future<void> removeExpense(WidgetRef ref, Expense? expense) async {
+    if (expense == null) return;
 
-      final removedExpenseId = expense!.expenseId;
+    try {
+      state = const AsyncValue.loading();
+
+      final removedExpenseId = expense.apiId;
 
       await isarService.removeExpenseDB(expense);
       ref.read(expenseProvider.notifier).removeExpense(expense);
 
-      final isRemoved = await expenseService.removeExpense(removedExpenseId);
-      if (!isRemoved) {
-        final removedExpense = RemovedExpense(removedExpenseId);
-        isarService.saveRemovedExpensesDB(removedExpense);
+      //Guardando apiId para enviar solicitação de remoção a API quando houver internet
+      //Caso a despesa não tenha apiId, ignora
+      if (removedExpenseId != null) {
+        final isRemoved = await expenseService.removeExpense(removedExpenseId);
+        if (!isRemoved) {
+          final removedExpense = RemovedExpense(removedExpenseId);
+          isarService.saveRemovedExpensesDB(removedExpense);
+        }
       }
     } catch (e) {
       rethrow;
+    } finally {
+      state = const AsyncValue.data(null);
     }
   }
 

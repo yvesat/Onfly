@@ -26,14 +26,14 @@ class ExpenseListTile extends HookConsumerWidget {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(expense!.description, style: const TextStyle(fontSize: 18.0)),
+              Text(expense?.description ?? "", style: const TextStyle(fontSize: 18.0)),
               const Text('Data: ', style: TextStyle(fontSize: 14.0)),
             ],
           ),
           subtitle: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Valor: R\$ ${expense.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 14.0)),
+              Text('Valor: R\$ ${expense?.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 14.0)),
               const Icon(Icons.payment, size: 32.0),
             ],
           ),
@@ -62,8 +62,8 @@ class ExpenseListTile extends HookConsumerWidget {
                       alertType: AlertType.warning,
                       message: "Deseja remover despesa?",
                       onPressed: () async {
-                        await expenseController.removeExpense(ref, expenseId);
                         Navigator.pop(context);
+                        await expenseController.removeExpense(ref, expense);
                       },
                     );
                   },
