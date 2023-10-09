@@ -46,34 +46,39 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
   }
   //
 
-  Future<void> createExpense(BuildContext context, ref, String title, String value, DateTime date) async {
+  Future<void> createExpense(BuildContext context, ref, String description, String amount, DateTime expenseDate) async {
     try {
       state = const AsyncValue.loading();
 
       final latLong = await _getLatLong(context);
 
-      double doubleValue = double.parse(value.replaceAll(',', '.'));
+      double doubleAmount = double.parse(amount.replaceAll(',', '.'));
 
-      final newExpense = ref.read(expenseProvider.notifier).createExpense(title: title, value: doubleValue, date: date, latLong: latLong);
+      final newExpense = ref.read(expenseProvider.notifier).createExpense(description: description, amount: doubleAmount, expenseDate: expenseDate, latLong: latLong);
 
       await isarService.saveExpenseDB(newExpense);
-      final bool isSynchronized = await expenseService.createExpense(newExpense);
+      final apiId = await expenseService.createExpense(newExpense);
 
-      await _updateExpenseSyncStatus(ref, isSynchronized, newExpense);
+      if (apiId != null) await _updateExpenseSyncStatus(ref, isSynchronized: true, expense: newExpense, apiId: apiId);
     } finally {
       state = const AsyncValue.data(null);
     }
   }
 
-  Future<void> updateExpense(WidgetRef ref, String expenseId, String? newTitle, String? newValue, DateTime? newDate) async {
-    double? doubleValue;
-    if (newValue != null) doubleValue = double.parse(newValue.replaceAll(',', '.'));
+  Future<void> updateExpense(WidgetRef ref, String expenseId, String? newDescription, String? newAmount, DateTime? newExpenseDate) async {
+    try {
+      state = const AsyncValue.loading();
 
-    final updatedExpense = ref.read(expenseProvider.notifier).editExpense(expenseId, newTitle: newTitle, newValue: doubleValue, newDate: newDate);
-    if (updatedExpense != null) {
+      double? doubleAmount;
+      if (newAmount != null) doubleAmount = double.parse(newAmount.replaceAll(',', '.'));
+
+      final updatedExpense = ref.read(expenseProvider.notifier).editExpense(expenseId, newDescription: newDescription, newAmount: doubleAmount, newExpenseDate: newExpenseDate);
+
       await isarService.saveExpenseDB(updatedExpense);
       bool isSynchronized = await expenseService.updateExpense(updatedExpense);
-      await _updateExpenseSyncStatus(ref, isSynchronized, updatedExpense);
+      if (isSynchronized) await _updateExpenseSyncStatus(ref, isSynchronized: isSynchronized, expense: updatedExpense);
+    } finally {
+      state = const AsyncValue.data(null);
     }
   }
 
@@ -106,10 +111,10 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
   }
 
   // Atualiza o status de sincronização no estado da aplicação e no banco de dados local, caso a operação de envio para a API seja bem-sucedida.
-  Future<void> _updateExpenseSyncStatus(WidgetRef ref, bool isSynchronized, Expense expense) async {
+  Future<void> _updateExpenseSyncStatus(WidgetRef ref, {required bool isSynchronized, required Expense expense, String? apiId}) async {
     if (isSynchronized) {
-      final updatedExpense = ref.read(expenseProvider.notifier).editExpense(expense.expenseId, newIsSynchronized: isSynchronized);
-      if (updatedExpense != null) await isarService.saveExpenseDB(updatedExpense);
+      final updatedExpense = ref.read(expenseProvider.notifier).editExpense(expense.expenseId, isSynchronized: isSynchronized, apiId: apiId);
+      await isarService.saveExpenseDB(updatedExpense);
     }
   }
 
