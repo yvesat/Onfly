@@ -12,7 +12,7 @@ Future<void> main() async {
   ]);
 
   final TokenController tokenController = TokenController();
-  await tokenController.getToken();
+  await tokenController.getTokenAPI();
 
   runApp(
     ProviderScope(
