@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:onfly/controller/expenses_controller.dart';
 import 'package:onfly/model/enums/alert_type.dart';
 
@@ -26,15 +27,15 @@ class ExpenseListTile extends HookConsumerWidget {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(expense?.description ?? "", style: const TextStyle(fontSize: 18.0)),
-              const Text('Data: ', style: TextStyle(fontSize: 14.0)),
+              Text(expense!.description, style: const TextStyle(fontSize: 18.0)),
+              Text("Data: ${DateFormat('dd/MM/yyyy').format(expense.expenseDate)}", style: const TextStyle(fontSize: 14.0)),
             ],
           ),
           subtitle: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Valor: R\$ ${expense?.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 14.0)),
-              const Icon(Icons.payment, size: 32.0),
+              Text('Valor: R\$ ${expense.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 14.0)),
+              if (!expense.isSynchronized) const Icon(Icons.wifi_off_sharp, size: 32.0),
             ],
           ),
           children: [
