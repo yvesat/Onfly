@@ -44,13 +44,5 @@ cd onfly
 3. Install the required dependencies:
 flutter pub get
 
-4. Configure any necessary environment variables or API keys.
-
-5. Run the app:
+4. Run the app:
 flutter run
-
-
-## Testing
-
-If you want to run tests for the Onfly app, use the following command:
-flutter test
