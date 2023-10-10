@@ -4,7 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:onfly/controller/expenses_controller.dart';
 import 'package:onfly/view/widgets/button.dart';
-
+import '../widgets/alert.dart';
 import '../widgets/progress.dart';
 
 class ExpensePage extends ConsumerStatefulWidget {
@@ -20,6 +20,7 @@ class _CreateExpensePageState extends ConsumerState<ExpensePage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _valueController = TextEditingController();
+  final Alert alertService = Alert();
   DateTime expenseDate = DateTime.now();
 
   @override
@@ -113,12 +114,17 @@ class _CreateExpensePageState extends ConsumerState<ExpensePage> {
                       label: "Salvar",
                       onTap: () async {
                         SystemChannels.textInput.invokeMethod('TextInput.hide');
-                        if (_formKey.currentState!.validate()) {
-                          if (widget.expenseId != null) {
-                            await expenseController.updateExpense(ref, widget.expenseId!, _titleController.text, _valueController.text, expenseDate);
-                          } else {
-                            await expenseController.createExpense(context, ref, _titleController.text, _valueController.text, expenseDate);
+                        try {
+                          if (_formKey.currentState!.validate()) {
+                            if (widget.expenseId != null) {
+                              await expenseController.updateExpense(ref, widget.expenseId!, _titleController.text, _valueController.text, expenseDate);
+                            } else {
+                              await expenseController.createExpense(context, ref, _titleController.text, _valueController.text, expenseDate);
+                            }
+                            Navigator.pop(context);
                           }
+                        } catch (e) {
+                          await alertService.snack(context, e.toString());
                           Navigator.pop(context);
                         }
                       },

@@ -37,7 +37,7 @@ class TokenController {
 
         return token;
       } else {
-        throw Exception(responseData['message']);
+        throw Exception("Falha ao obter token ${responseData['message']}");
       }
     } catch (e) {
       rethrow;

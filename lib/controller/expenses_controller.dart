@@ -138,21 +138,21 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
   /// Tenta enviar a despesa para a API e, se bem-sucedida,  atualiza o status
   /// de sincronização da despesa.
   Future<void> createExpense(BuildContext context, ref, String description, String amount, DateTime expenseDate) async {
+    state = const AsyncValue.loading();
+
+    final latLong = await _getLatLong(context);
+
+    double doubleAmount = double.parse(amount.replaceAll(',', '.'));
+
+    final newExpense = ref.read(expenseProvider.notifier).createExpense(description: description, amount: doubleAmount, expenseDate: expenseDate, latLong: latLong);
+    await isarService.saveExpenseDB(newExpense);
     try {
-      state = const AsyncValue.loading();
-
-      final latLong = await _getLatLong(context);
-
-      double doubleAmount = double.parse(amount.replaceAll(',', '.'));
-
-      final newExpense = ref.read(expenseProvider.notifier).createExpense(description: description, amount: doubleAmount, expenseDate: expenseDate, latLong: latLong);
-
-      await isarService.saveExpenseDB(newExpense);
       final apiId = await expenseService.createExpense(newExpense);
 
       if (apiId != null) await _updateExpenseSyncStatus(ref, isSynchronized: true, expense: newExpense, apiId: apiId);
     } catch (e) {
       rethrow;
+      // throw (Exception("${e.toString()}. "));
     } finally {
       state = const AsyncValue.data(null);
     }
