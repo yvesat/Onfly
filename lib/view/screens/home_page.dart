@@ -18,7 +18,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     Future(() {
-      _loadedData = ref.read(expenseControllerProvider.notifier).loadExpenses(ref);
+      _loadedData = ref.read(expenseControllerProvider.notifier).loadExpenses(context, ref);
     });
   }
 

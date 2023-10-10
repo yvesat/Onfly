@@ -9,17 +9,17 @@ class TokenController {
   final IsarService isarService = IsarService();
 
   Future<Token?> getTokenAPI() async {
-    final connection = await InternetConnectionChecker().hasConnection;
-    if (!connection) return null;
-
-    final url = Uri.parse('${ApiConfig.apiUrl}/collections/users/auth-with-password');
-
-    final body = jsonEncode({
-      'identity': ApiConfig.login,
-      'password': ApiConfig.password,
-    });
-
     try {
+      final connection = await InternetConnectionChecker().hasConnection;
+      if (!connection) return null;
+
+      final url = Uri.parse('${ApiConfig.apiUrl}/collections/users/auth-with-password');
+
+      final body = jsonEncode({
+        'identity': ApiConfig.login,
+        'password': ApiConfig.password,
+      });
+
       final response = await http.post(
         url,
         body: body,
@@ -28,19 +28,19 @@ class TokenController {
         },
       );
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
 
+      if (response.statusCode == 200) {
         final Token token = Token(responseData['token']);
 
         await isarService.saveTokenDB(token);
 
         return token;
       } else {
-        return null;
+        throw Exception(responseData['message']);
       }
     } catch (e) {
-      return null;
+      rethrow;
     }
   }
 }

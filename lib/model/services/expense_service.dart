@@ -18,24 +18,27 @@ class ExpenseService {
   //Verifica e retorna se há token disponível.
   //Caso não tenha, solicita novo token. Retorna token ou nulo
   Future<Token?> _loadToken() async {
-    Token? token = await isarService.getTokenDB();
-    token ??= await tokenController.getTokenAPI();
-    return token;
+    try {
+      Token? token = await isarService.getTokenDB();
+      token ??= await tokenController.getTokenAPI();
+      return token;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<List<dynamic>?> getExpenseList() async {
-    final connection = await InternetConnectionChecker().hasConnection;
-    if (!connection) return null;
-    final authToken = await _loadToken();
-    if (authToken == null) return null;
-
-    final url = Uri.parse('$baseUrl/collections/expense_${ApiConfig.login}/records');
-
     try {
+      final connection = await InternetConnectionChecker().hasConnection;
+      if (!connection) return null;
+      final authToken = await _loadToken();
+
+      final url = Uri.parse('$baseUrl/collections/expense_${ApiConfig.login}/records');
+
       final response = await http.get(
         url,
         headers: {
-          'Authorization': 'Bearer ${authToken.token}',
+          'Authorization': 'Bearer ${authToken!.token}',
         },
       );
 
@@ -52,27 +55,27 @@ class ExpenseService {
   }
 
   Future<String?> createExpense(Expense expense) async {
-    final connection = await InternetConnectionChecker().hasConnection;
-    if (!connection) return null;
-
-    final authToken = await _loadToken();
-    if (authToken == null) return null;
-
-    final url = Uri.parse('$baseUrl/collections/expense_${ApiConfig.login}/records');
-    final body = jsonEncode({
-      'description': expense.description,
-      'expense_date': expense.expenseDate.toIso8601String(),
-      'amount': expense.amount,
-      'latitude': expense.latitude,
-      'longitude': expense.longitude,
-    });
-
     try {
+      final connection = await InternetConnectionChecker().hasConnection;
+      if (!connection) return null;
+
+      final authToken = await _loadToken();
+      //if (authToken == null) throw (Exception("Falha ao obter token: "));
+
+      final url = Uri.parse('$baseUrl/collections/expense_${ApiConfig.login}/records');
+      final body = jsonEncode({
+        'description': expense.description,
+        'expense_date': expense.expenseDate.toIso8601String(),
+        'amount': expense.amount,
+        'latitude': expense.latitude,
+        'longitude': expense.longitude,
+      });
+
       final response = await http.post(
         url,
         body: body,
         headers: {
-          'Authorization': 'Bearer ${authToken.token}',
+          'Authorization': 'Bearer ${authToken!.token}',
           'Content-Type': 'application/json',
         },
       );
@@ -84,27 +87,27 @@ class ExpenseService {
 
       return responseData['id'];
     } catch (e) {
-      return null;
+      rethrow;
     }
   }
 
   Future<bool> updateExpense(Expense expense) async {
-    final connection = await InternetConnectionChecker().hasConnection;
-    if (!connection) return false;
-
-    final authToken = await _loadToken();
-    if (authToken == null) return false;
-
-    final url = Uri.parse('$baseUrl/collections/expense_${ApiConfig.login}/records/${expense.apiId}');
-    final body = jsonEncode({
-      'description': expense.description,
-      'amount': expense.amount,
-      'expense_date': expense.expenseDate.toIso8601String(),
-      'latitude': expense.latitude,
-      'longitude': expense.longitude,
-    });
-
     try {
+      final connection = await InternetConnectionChecker().hasConnection;
+      if (!connection) return false;
+
+      final authToken = await _loadToken();
+      if (authToken == null) return false;
+
+      final url = Uri.parse('$baseUrl/collections/expense_${ApiConfig.login}/records/${expense.apiId}');
+      final body = jsonEncode({
+        'description': expense.description,
+        'amount': expense.amount,
+        'expense_date': expense.expenseDate.toIso8601String(),
+        'latitude': expense.latitude,
+        'longitude': expense.longitude,
+      });
+
       final response = await http.patch(
         url,
         body: body,
@@ -120,19 +123,19 @@ class ExpenseService {
 
       return true;
     } catch (e) {
-      return false;
+      rethrow;
     }
   }
 
   Future<bool> removeExpense(String apiId) async {
-    final connection = await InternetConnectionChecker().hasConnection;
-    if (!connection) return false;
-    final authToken = await _loadToken();
-    if (authToken == null) return false;
-
-    final url = Uri.parse('$baseUrl/collections/expense_${ApiConfig.login}/records/$apiId');
-
     try {
+      final connection = await InternetConnectionChecker().hasConnection;
+      if (!connection) return false;
+      final authToken = await _loadToken();
+      if (authToken == null) return false;
+
+      final url = Uri.parse('$baseUrl/collections/expense_${ApiConfig.login}/records/$apiId');
+
       final response = await http.delete(
         url,
         headers: {
@@ -146,7 +149,7 @@ class ExpenseService {
 
       return true;
     } catch (e) {
-      return false;
+      rethrow;
     }
   }
 
@@ -167,7 +170,7 @@ class ExpenseService {
         }
       });
     } catch (e) {
-      throw Exception("Error syncing expenses: $e");
+      rethrow;
     }
   }
 }
