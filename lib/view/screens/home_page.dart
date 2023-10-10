@@ -36,6 +36,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         children: [
           Scaffold(
             appBar: AppBar(
+              centerTitle: true,
               title: const Text('Onfly'),
             ),
             body: Column(

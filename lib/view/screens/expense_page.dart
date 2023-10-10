@@ -39,6 +39,7 @@ class _CreateExpensePageState extends ConsumerState<ExpensePage> {
       children: [
         Scaffold(
           appBar: AppBar(
+            centerTitle: true,
             title: Text(widget.title),
           ),
           body: Padding(
