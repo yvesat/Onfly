@@ -63,10 +63,22 @@ class IsarService {
   //Removed Expenses
   Future<void> saveRemovedExpensesDB(RemovedExpense removedExpense) async {
     final isar = await db;
-    await isar.writeTxn(() async => await isar.removedExpenses.put(removedExpense)); //TODO: testar duplicidade
+    await isar.writeTxn(() async => await isar.removedExpenses.put(removedExpense));
   }
 
-  Future<void> clearRemovedExpensasDB() async {
+  Future<List<RemovedExpense>> getRemovedExpensesListDB() async {
+    final isar = await db;
+    return isar.removedExpenses.where().findAll();
+  }
+
+  Future<void> removeRemovedExpense(RemovedExpense removedExpense) async {
+    final isar = await db;
+
+    final expenseToDelete = await isar.removedExpenses.filter().deletedExpenseIdEqualTo(removedExpense.deletedExpenseId).findFirst();
+    if (expenseToDelete != null) await isar.writeTxn(() async => await isar.removedExpenses.delete(expenseToDelete.id));
+  }
+
+  Future<void> clearRemovedExpensesDB() async {
     final isar = await db;
     await isar.writeTxn(() async => await isar.removedExpenses.clear());
   }

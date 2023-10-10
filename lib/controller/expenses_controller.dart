@@ -23,20 +23,21 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
   final GeolocatorService geolocatorService = GeolocatorService();
   final InternetConnectionChecker checkConnection = InternetConnectionChecker();
 
-  /// Carrega despesas do banco de dados local.
-  ///
-  /// Esta função carrega despesas do banco de dados local e atualiza o estado do
-  /// aplicativo com elas. Se não houver conexão com a internet e não houver
-  /// despesas locais, ela tenta buscar despesas do backend. Ela trata erros e
-  /// atualiza o estado do aplicativo após o carregamento das despesas.
-  Future<void> loadExpenses(WidgetRef ref) async {
+  /// loadExpenses Carrega as despesas do aplicativo, priorizando os dados locais.
+  /// Verifica se o dispositivo está online usando checkConnection. Se estiver
+  /// online e não houver despesas locais, tenta carregar as despesas da API
+  /// com _loadExpensesFromAPI(ref). Caso contrário, carrega as despesas
+  /// locais. Posteriormente, inicia a sincronização local de despesas com
+  /// _syncLocalExpenses(ref) para garantir que os dados locais estejam
+  /// atualizados com a API, quando possível.
+  Future<void> loadExpenses(BuildContext context, WidgetRef ref) async {
     try {
       state = const AsyncValue.loading();
 
-      final isConnected = await checkConnection.hasConnection;
+      final isOnline = await checkConnection.hasConnection;
       final expenseListDB = await isarService.getExpensesListDB();
 
-      if (isConnected && expenseListDB.isEmpty) {
+      if (isOnline && expenseListDB.isEmpty) {
         await _loadExpensesFromAPI(ref);
       } else {
         for (final expense in expenseListDB) {
@@ -44,7 +45,7 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
         }
       }
 
-      _syncLocalExpenses(ref);
+      _syncLocalExpenses(context, ref);
     } catch (_) {
       rethrow;
     } finally {
@@ -133,6 +134,9 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
     }
   }
 
+  /// Cria uma nova despesa no aplicativo, salvando-a localmente.
+  /// Tenta enviar a despesa para a API e, se bem-sucedida,  atualiza o status
+  /// de sincronização da despesa.
   Future<void> createExpense(BuildContext context, ref, String description, String amount, DateTime expenseDate) async {
     try {
       state = const AsyncValue.loading();
@@ -154,6 +158,9 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
     }
   }
 
+  /// Atualiza uma despesa existente no aplicativo, salvando-a localmente.
+  /// Tenta enviar a despesa para a API e, se bem-sucedida,  atualiza o status
+  /// de sincronização da despesa.
   Future<void> updateExpense(WidgetRef ref, String expenseId, String? newDescription, String? newAmount, DateTime? newExpenseDate) async {
     try {
       state = const AsyncValue.loading();
@@ -192,8 +199,7 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
       await isarService.removeExpenseDB(expense);
       ref.read(expenseProvider.notifier).removeExpense(expense);
 
-      //Guardando apiId para enviar solicitação de remoção a API quando houver internet
-      //Caso a despesa não tenha apiId, ignora
+      /// Guardando apiId para enviar solicitação de remoção a API quando houver internet.
       if (removedExpenseId != null) {
         final isRemoved = await expenseService.removeExpense(removedExpenseId);
         if (!isRemoved) {
@@ -214,22 +220,21 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
   /// e editadas para o backend. Ela verifica a conexão com a internet, envia
   /// despesas não sincronizadas e atualiza o status de sincronização delas.
   /// Por fim, ela atualiza o estado do aplicativo com despesas do backend.
-  Future<void> _syncLocalExpenses(WidgetRef ref) async {
+  Future<void> _syncLocalExpenses(BuildContext context, WidgetRef ref) async {
     try {
-      bool isConnected = false;
+      bool isOnline = false;
 
       while (true) {
-        bool isCreatedExpensesSync = false;
-        bool isEditedExpensesSync = false;
+        isOnline = await checkConnection.hasConnection;
 
-        isConnected = await checkConnection.hasConnection;
-
-        if (isConnected) {
+        if (isOnline) {
           final expenseListDB = await isarService.getExpensesListDB();
 
           List<Expense> unsyncCreatedExp = [];
           List<Expense> unsyncEditedExp = [];
 
+          /// Verificando despesa por despesa se há alguma sem
+          /// envio para API ou sem sincronizar alteração
           for (final expense in expenseListDB) {
             if (expense.isSynchronized == false) {
               if (expense.apiId == null) {
@@ -240,31 +245,46 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
             }
           }
 
+          /// Enviando despesas criadas no app sem envio para API
           if (unsyncCreatedExp.isNotEmpty) {
             for (final expense in unsyncCreatedExp) {
               final apiId = await expenseService.createExpense(expense);
               if (apiId != null) {
                 await _updateExpenseSyncStatus(ref, isSynchronized: true, expense: expense, apiId: apiId);
-                isCreatedExpensesSync = true;
+                unsyncCreatedExp.removeWhere((e) => e.expenseId == expense.expenseId);
               }
             }
-          } else {
-            isCreatedExpensesSync = true;
           }
 
+          /// Enviando despesas editadas no app não sincronizadas para API
           if (unsyncEditedExp.isNotEmpty) {
             for (final expense in unsyncEditedExp) {
               bool isSynchronized = await expenseService.updateExpense(expense);
               if (isSynchronized) {
                 await _updateExpenseSyncStatus(ref, isSynchronized: isSynchronized, expense: expense);
-                isEditedExpensesSync = true;
+                unsyncEditedExp.removeWhere((e) => e.expenseId == expense.expenseId);
               }
             }
-          } else {
-            isEditedExpensesSync = true;
           }
 
-          if (isCreatedExpensesSync && isEditedExpensesSync) {
+          /// Busca por ids de despesas que foram excluídas enquanto o app estava offline.
+          /// Caso encontre, tenta remover uma a uma via API.
+          List<RemovedExpense> removedUnsyncExpensesList = await isarService.getRemovedExpensesListDB();
+          if (removedUnsyncExpensesList.isNotEmpty) {
+            for (final removedUnsyncExpense in removedUnsyncExpensesList) {
+              final isRemoved = await expenseService.removeExpense(removedUnsyncExpense.deletedExpenseId);
+              if (isRemoved) {
+                final removedSyncExpense = RemovedExpense(removedUnsyncExpense.deletedExpenseId);
+                isarService.saveRemovedExpensesDB(removedSyncExpense);
+              }
+            }
+            removedUnsyncExpensesList = await isarService.getRemovedExpensesListDB();
+          }
+
+          /// Após garantir que todos os dados locais foram enviados, compara despesas recebidas
+          /// da API com as despesas do banco local. Caso tenha qualquer diferença,
+          /// o app irá limpar os dados locais e carregar os dados recebidos da API.
+          if (unsyncCreatedExp.isEmpty && unsyncEditedExp.isEmpty && removedUnsyncExpensesList.isEmpty) {
             final expenseListAPI = await _listExpensesAPI(ref);
             final expenseListUpdatedDB = await isarService.getExpensesListDB();
 
@@ -275,10 +295,10 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
             }
           }
         }
-        await Future.delayed(const Duration(seconds: 15));
+        await Future.delayed(const Duration(seconds: 5));
       }
     } catch (e) {
-      rethrow;
+      alertService.snack(context, e.toString());
     }
   }
 
@@ -309,7 +329,8 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
     return expense1.description == expense2.description && expense1.amount == expense2.amount && expense1.expenseDate == expense2.expenseDate && expense1.apiId == expense2.apiId && expense1.latitude == expense2.latitude && expense1.longitude == expense2.longitude;
   }
 
-  /// Atualiza o status de sincronização no estado da aplicação e no banco de dados local, caso a operação de envio para a API seja bem-sucedida.
+  /// Atualiza o status de sincronização no estado da aplicação e no banco de
+  /// dados local, caso a operação de envio para a API seja bem-sucedida.
   Future<void> _updateExpenseSyncStatus(WidgetRef ref, {required bool isSynchronized, required Expense expense, String? apiId}) async {
     try {
       final updatedExpense = ref.read(expenseProvider.notifier).editExpense(expense.expenseId, isSynchronized: isSynchronized, apiId: apiId);
