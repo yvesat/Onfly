@@ -35,16 +35,6 @@ class IsarService {
     return isar.expenses.where().findAll();
   }
 
-  Future<List<Expense>> getUnsyncedCreatedExpListDB() async {
-    final isar = await db;
-    return await isar.expenses.filter().isSynchronizedEqualTo(false).apiIdIsNull().findAll();
-  }
-
-  Future<List<Expense>> getUnsyncedEditedExpListDB() async {
-    final isar = await db;
-    return await isar.expenses.filter().isSynchronizedEqualTo(false).apiIdIsNotNull().findAll();
-  }
-
   Future<void> removeExpenseDB(Expense expense) async {
     final isar = await db;
 
