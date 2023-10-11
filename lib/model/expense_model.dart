@@ -46,6 +46,12 @@ class Expense {
       longitude: longitude,
     );
   }
+
+  @override
+  bool operator ==(Object other) => identical(this, other) || other is Expense && runtimeType == other.runtimeType && expenseId == other.expenseId && description == other.description && amount == other.amount && expenseDate == other.expenseDate && apiId == other.apiId && isSynchronized == other.isSynchronized && latitude == other.latitude && longitude == other.longitude;
+
+  @override
+  int get hashCode => expenseId.hashCode ^ description.hashCode ^ amount.hashCode ^ expenseDate.hashCode ^ apiId.hashCode ^ isSynchronized.hashCode ^ latitude.hashCode ^ longitude.hashCode;
 }
 
 class ExpenseNotifier extends StateNotifier<List<Expense>> {
