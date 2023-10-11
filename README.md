@@ -46,3 +46,8 @@ flutter pub get
 
 4. Run the app:
 flutter run
+
+## Testing
+
+If you want to run tests for the Onfly app, use the following command:
+flutter test
