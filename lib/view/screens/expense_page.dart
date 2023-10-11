@@ -83,7 +83,7 @@ class _CreateExpensePageState extends ConsumerState<ExpensePage> {
                                 ],
                               ),
                             ),
-                            const Icon(Icons.calendar_today),
+                            Icon(Icons.calendar_today, color: Theme.of(context).colorScheme.primary),
                           ],
                         ),
                       ),
@@ -111,7 +111,7 @@ class _CreateExpensePageState extends ConsumerState<ExpensePage> {
                   const Spacer(),
                   Center(
                     child: Button(
-                      label: "Salvar",
+                      label: "SALVAR",
                       onTap: () async {
                         SystemChannels.textInput.invokeMethod('TextInput.hide');
                         try {

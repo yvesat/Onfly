@@ -42,7 +42,7 @@ void main() {
 
     // Verificar se o widget exibe as informações da despesa corretamente
     expect(find.text(expense.description), findsOneWidget);
-    expect(find.text("Data: ${DateFormat('dd/MM/yyyy').format(expense.expenseDate)}"), findsOneWidget);
+    expect(find.text("Data: \n${DateFormat('dd/MM/yyyy').format(expense.expenseDate)}"), findsOneWidget);
     expect(find.text('Valor: R\$ ${expense.amount.toStringAsFixed(2)}'), findsOneWidget);
     expect(find.byIcon(Icons.wifi_off_sharp), findsNothing); // Supondo que isSynchronized seja verdadeiro
 

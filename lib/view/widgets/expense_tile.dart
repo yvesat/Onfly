@@ -27,15 +27,27 @@ class ExpenseListTile extends HookConsumerWidget {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(expense!.description, style: const TextStyle(fontSize: 18.0)),
-              Text("Data: ${DateFormat('dd/MM/yyyy').format(expense.expenseDate)}", style: const TextStyle(fontSize: 14.0)),
+              Flexible(
+                  child: Text(
+                expense!.description,
+                style: TextStyle(fontSize: 16.0, overflow: TextOverflow.ellipsis, color: Theme.of(context).colorScheme.secondary, fontWeight: FontWeight.bold),
+                maxLines: 1,
+              )),
+              const SizedBox(width: 1),
+              Text("Data: \n${DateFormat('dd/MM/yyyy').format(expense.expenseDate)}", style: const TextStyle(fontSize: 14.0)),
             ],
           ),
           subtitle: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Valor: R\$ ${expense.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 14.0)),
-              if (!expense.isSynchronized) const Icon(Icons.wifi_off_sharp, size: 32.0),
+              Flexible(
+                child: Text('Valor: R\$ ${expense.amount.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 14.0,
+                      overflow: TextOverflow.ellipsis,
+                    )),
+              ),
+              if (!expense.isSynchronized) const Icon(Icons.wifi_off_sharp, size: 24.0),
             ],
           ),
           children: [
