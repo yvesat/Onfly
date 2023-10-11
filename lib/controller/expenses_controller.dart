@@ -44,11 +44,10 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
           ref.read(expenseProvider.notifier).loadExpense(expense);
         }
       }
-
-      _syncLocalExpenses(context, ref);
     } catch (_) {
       rethrow;
     } finally {
+      _syncLocalExpenses(context, ref);
       state = const AsyncValue.data(null);
     }
   }
@@ -247,22 +246,31 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
 
           /// Enviando despesas criadas no app sem envio para API
           if (unsyncCreatedExp.isNotEmpty) {
-            for (final expense in unsyncCreatedExp) {
+            int index = 0;
+            while (index < unsyncCreatedExp.length) {
+              final expense = unsyncCreatedExp[index];
               final apiId = await expenseService.createExpense(expense);
+
               if (apiId != null) {
                 await _updateExpenseSyncStatus(ref, isSynchronized: true, expense: expense, apiId: apiId);
-                unsyncCreatedExp.removeWhere((e) => e.expenseId == expense.expenseId);
+                unsyncCreatedExp.removeAt(index);
+              } else {
+                index++;
               }
             }
           }
 
           /// Enviando despesas editadas no app não sincronizadas para API
           if (unsyncEditedExp.isNotEmpty) {
-            for (final expense in unsyncEditedExp) {
+            int index = 0;
+            while (index < unsyncEditedExp.length) {
+              final expense = unsyncEditedExp[index];
               bool isSynchronized = await expenseService.updateExpense(expense);
               if (isSynchronized) {
                 await _updateExpenseSyncStatus(ref, isSynchronized: isSynchronized, expense: expense);
-                unsyncEditedExp.removeWhere((e) => e.expenseId == expense.expenseId);
+                unsyncEditedExp.removeAt(index);
+              } else {
+                index++;
               }
             }
           }
@@ -275,7 +283,7 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
               final isRemoved = await expenseService.removeExpense(removedUnsyncExpense.deletedExpenseId);
               if (isRemoved) {
                 final removedSyncExpense = RemovedExpense(removedUnsyncExpense.deletedExpenseId);
-                isarService.saveRemovedExpensesDB(removedSyncExpense);
+                isarService.removeRemovedExpense(removedSyncExpense);
               }
             }
             removedUnsyncExpensesList = await isarService.getRemovedExpensesListDB();
@@ -325,8 +333,13 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
   }
 
   bool _areExpensesEqual(Expense expense1, Expense expense2) {
+    /// Removendo o componente de horário das datas para comparar apenas a data.
+    /// Necessário para evitar falsos negativos na comparação.
+    DateTime dateOnly1 = DateTime(expense1.expenseDate.year, expense1.expenseDate.month, expense1.expenseDate.day);
+    DateTime dateOnly2 = DateTime(expense2.expenseDate.year, expense2.expenseDate.month, expense2.expenseDate.day);
+
     // Compara cada propriedade de cada despesa
-    return expense1.description == expense2.description && expense1.amount == expense2.amount && expense1.expenseDate == expense2.expenseDate && expense1.apiId == expense2.apiId && expense1.latitude == expense2.latitude && expense1.longitude == expense2.longitude;
+    return expense1.description == expense2.description && expense1.amount == expense2.amount && dateOnly1 == dateOnly2 && expense1.apiId == expense2.apiId && expense1.latitude == expense2.latitude && expense1.longitude == expense2.longitude;
   }
 
   /// Atualiza o status de sincronização no estado da aplicação e no banco de
