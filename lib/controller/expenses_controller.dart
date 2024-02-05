@@ -72,7 +72,6 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
   /// 1. Limpa todas as despesas existentes no estado do aplicativo e no banco de dados local.
   /// 2. Itera pelas despesas provenientes da API.
   /// 3. Para cada despesa da API, cria despesa no estado e no banco de dados local.
-  //TODO: VERIFICAR DUPLICIDADE
   Future<void> _loadExpensesFromAPI(WidgetRef ref) async {
     try {
       final expenseListAPI = await expenseService.getExpenseList();
@@ -103,7 +102,6 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  //TODO: VERIFICAR DUPLICIDADE
   Future<List<Expense>?> _listExpensesAPI(WidgetRef ref) async {
     try {
       final expenseListAPI = await expenseService.getExpenseList();
