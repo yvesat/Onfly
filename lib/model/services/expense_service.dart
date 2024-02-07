@@ -60,7 +60,6 @@ class ExpenseService {
       if (!connection) return null;
 
       final authToken = await _loadToken();
-      //if (authToken == null) throw (Exception("Falha ao obter token: "));
 
       final url = Uri.parse('$baseUrl/collections/expense_${ApiConfig.login}/records');
       final body = jsonEncode({
