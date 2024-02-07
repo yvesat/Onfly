@@ -41,11 +41,13 @@ class ExpenseListTile extends HookConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Flexible(
-                child: Text('Valor: R\$ ${expense.amount.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 14.0,
-                      overflow: TextOverflow.ellipsis,
-                    )),
+                child: Text(
+                  'Valor: R\$ ${expense.amount.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 14.0,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ),
               if (!expense.isSynchronized) const Icon(Icons.wifi_off_sharp, size: 24.0),
             ],
@@ -59,10 +61,7 @@ class ExpenseListTile extends HookConsumerWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ExpensePage(
-                          expenseId: expenseId,
-                          title: "Editar Despesa",
-                        ),
+                        builder: (context) => ExpensePage(expenseId: expenseId, title: "Editar Despesa"),
                       ),
                     );
                   },
