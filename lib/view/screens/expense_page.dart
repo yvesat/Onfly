@@ -39,6 +39,7 @@ class _CreateExpensePageState extends ConsumerState<ExpensePage> {
     return Stack(
       children: [
         Scaffold(
+          resizeToAvoidBottomInset: false,
           appBar: AppBar(
             centerTitle: true,
             title: Text(widget.title),
@@ -52,6 +53,7 @@ class _CreateExpensePageState extends ConsumerState<ExpensePage> {
                 children: <Widget>[
                   Card(
                     child: TextFormField(
+                      onTapOutside: (event) => SystemChannels.textInput.invokeMethod('TextInput.hide'),
                       controller: _titleController,
                       textCapitalization: TextCapitalization.words,
                       decoration: const InputDecoration(labelText: 'Descrição'),
@@ -99,6 +101,7 @@ class _CreateExpensePageState extends ConsumerState<ExpensePage> {
                   ),
                   Card(
                     child: TextFormField(
+                      onTapOutside: (event) => SystemChannels.textInput.invokeMethod('TextInput.hide'),
                       controller: _valueController,
                       decoration: const InputDecoration(labelText: 'Valor'),
                       keyboardType: TextInputType.number,
