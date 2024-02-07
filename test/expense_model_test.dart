@@ -113,7 +113,7 @@ void main() {
         newDescription: 'Edited Expense',
         newAmount: 100.0,
         isSynchronized: false,
-        apiId: 'api123',
+        backendId: 'api123',
       );
 
       // Assert

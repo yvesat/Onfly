@@ -95,10 +95,10 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
     return newExpense;
   }
 
-  Expense editExpense(String expenseId, {String? newDescription, double? newAmount, DateTime? newExpenseDate, bool? isSynchronized, String? apiId}) {
+  Expense editExpense(String expenseId, {String? newDescription, double? newAmount, DateTime? newExpenseDate, bool? isSynchronized, String? backendId}) {
     state = [
       for (final expense in state)
-        if (expense.expenseId == expenseId) expense.copyWith(description: newDescription, amount: newAmount, expenseDate: newExpenseDate, apiId: apiId, isSynchronized: isSynchronized) else expense,
+        if (expense.expenseId == expenseId) expense.copyWith(description: newDescription, amount: newAmount, expenseDate: newExpenseDate, apiId: backendId, isSynchronized: isSynchronized) else expense,
     ];
 
     return state.firstWhere((expense) => expense.expenseId == expenseId);

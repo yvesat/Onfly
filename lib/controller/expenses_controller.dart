@@ -37,11 +37,13 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
       final isOnline = await checkConnection.hasConnection;
       final expenseListDB = await isarService.getExpensesListDB();
 
+      final expenseState = ref.read(expenseProvider.notifier);
+
       if (isOnline && expenseListDB.isEmpty) {
         await _loadExpensesFromAPI(ref);
       } else {
         for (final expense in expenseListDB) {
-          ref.read(expenseProvider.notifier).loadExpense(expense);
+          expenseState.loadExpense(expense);
         }
       }
     } catch (_) {
@@ -78,12 +80,14 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
 
       if (expenseListAPI == null || expenseListAPI.isEmpty) return;
 
-      ref.read(expenseProvider.notifier).clearExpenses();
+      final expenseState = ref.read(expenseProvider.notifier);
+
+      expenseState.clearExpenses();
 
       await isarService.clearExpenseDB();
 
       for (final expense in expenseListAPI) {
-        final newExpense = ref.read(expenseProvider.notifier).createExpense(
+        final newExpense = expenseState.createExpense(
           description: expense["description"],
           amount: expense["amount"].toDouble(),
           expenseDate: DateTime.parse(expense["expense_date"]),
@@ -144,12 +148,11 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
     final newExpense = ref.read(expenseProvider.notifier).createExpense(description: description, amount: doubleAmount, expenseDate: expenseDate, latLong: latLong);
     await isarService.saveExpenseDB(newExpense);
     try {
-      final apiId = await expenseService.createExpense(newExpense);
+      final backendId = await expenseService.createExpense(newExpense);
 
-      if (apiId != null) await _updateExpenseSyncStatus(ref, isSynchronized: true, expense: newExpense, apiId: apiId);
+      if (backendId != null) await _updateExpenseSyncStatus(ref, isSynchronized: true, expense: newExpense, backendID: backendId);
     } catch (e) {
       rethrow;
-      // throw (Exception("${e.toString()}. "));
     } finally {
       state = const AsyncValue.data(null);
     }
@@ -194,7 +197,10 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
       final removedExpenseId = expense.apiId;
 
       await isarService.removeExpenseDB(expense);
-      ref.read(expenseProvider.notifier).removeExpense(expense);
+
+      final expenseState = ref.read(expenseProvider.notifier);
+
+      expenseState.removeExpense(expense);
 
       /// Guardando apiId para enviar solicitação de remoção a API quando houver internet.
       if (removedExpenseId != null) {
@@ -250,7 +256,7 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
               final apiId = await expenseService.createExpense(expense);
 
               if (apiId != null) {
-                await _updateExpenseSyncStatus(ref, isSynchronized: true, expense: expense, apiId: apiId);
+                await _updateExpenseSyncStatus(ref, isSynchronized: true, expense: expense, backendID: apiId);
                 unsyncCreatedExp.removeAt(index);
               } else {
                 index++;
@@ -295,7 +301,7 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
             final expenseListUpdatedDB = await isarService.getExpensesListDB();
 
             if (expenseListAPI != null) {
-              final areExpenseListsEqual = _synchExpenseAPI(apiList: expenseListAPI, localDataList: expenseListUpdatedDB);
+              final areExpenseListsEqual = _synchExpenseAPI(backendExpenseList: expenseListAPI, localExpenseList: expenseListUpdatedDB);
 
               if (!areExpenseListsEqual) await _loadExpensesFromAPI(ref);
             }
@@ -313,19 +319,19 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
   /// Esta função verifica se as duas listas de despesas passadas como argumento são
   /// iguais em termos de tamanho e conteúdo. Ela compara o tamanho das listas e,
   /// em seguida, verifica se cada despesa local tem uma correspondente na lista da API
-  /// com base no `apiId`. Além disso, ela verifica se as despesas são iguais usando a função
+  /// com base no `backendId`. Além disso, ela verifica se as despesas são iguais usando a função
   /// `_areExpensesEqual`. Se todas as despesas locais tiverem correspondentes na lista da API
   /// e forem iguais, a função retorna `true`, caso contrário, retorna `false`.
-  bool _synchExpenseAPI({required List<Expense> apiList, required List<Expense> localDataList}) {
-    if (apiList.length != localDataList.length) {
+  bool _synchExpenseAPI({required List<Expense> backendExpenseList, required List<Expense> localExpenseList}) {
+    if (backendExpenseList.length != localExpenseList.length) {
       return false;
     }
 
-    for (final localExpense in localDataList) {
-      final apiExpense = apiList.firstWhereOrNull((apiExpense) => apiExpense.apiId == localExpense.apiId);
+    for (final localExpense in localExpenseList) {
+      final backendExpense = backendExpenseList.firstWhereOrNull((apiExpense) => apiExpense.apiId == localExpense.apiId);
 
-      if (apiExpense == null) return false;
-      if (!_areExpensesEqual(apiExpense, localExpense)) return false;
+      if (backendExpense == null) return false;
+      if (!_areExpensesEqual(backendExpense, localExpense)) return false;
     }
     return true;
   }
@@ -342,9 +348,10 @@ class ExpenseController extends StateNotifier<AsyncValue<void>> {
 
   /// Atualiza o status de sincronização no estado da aplicação e no banco de
   /// dados local, caso a operação de envio para a API seja bem-sucedida.
-  Future<void> _updateExpenseSyncStatus(WidgetRef ref, {required bool isSynchronized, required Expense expense, String? apiId}) async {
+  Future<void> _updateExpenseSyncStatus(WidgetRef ref, {required bool isSynchronized, required Expense expense, String? backendID}) async {
     try {
-      final updatedExpense = ref.read(expenseProvider.notifier).editExpense(expense.expenseId, isSynchronized: isSynchronized, apiId: apiId);
+      final expenseState = ref.read(expenseProvider.notifier);
+      final updatedExpense = expenseState.editExpense(expense.expenseId, isSynchronized: isSynchronized, backendId: backendID);
       await isarService.saveExpenseDB(updatedExpense);
     } catch (e) {
       rethrow;
